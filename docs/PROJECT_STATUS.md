@@ -23,7 +23,7 @@ Last updated: 2026-08-17
 - independent successful/canonical X Layer receipt verifier
 - tests for missing configuration and wallet nonce replay
 - dedicated Supabase project `NAVI` (`fwuvethkkvykmciilnot`) created and linked in `eu-west-1`
-- remote migrations `20260814000100`, `20260814000200`, and `20260817000100` applied and matched locally
+- remote migrations `20260814000100`, `20260814000200`, `20260817000100`, and `20260817000200` applied and matched locally
 - remote database verification: 9/9 expected tables, RLS enabled 9/9, zero direct `anon`/`authenticated` table grants, fixed security-definer search paths, and atomic nonce replay rejection
 - runtime Supabase URL, modern server secret, and session-signing secret provisioned in the ignored web-app environment file
 - end-to-end disposable-wallet session verified on 2026-08-14: HTTP nonce issuance, wallet signature, atomic Supabase consumption, verified wallet persistence, HttpOnly session reuse, replay rejection, and clean removal of test records
@@ -41,7 +41,9 @@ Last updated: 2026-08-17
 - explicit chain-1952/196 execution and receipt verification configuration with final prepared-transaction revalidation
 - signed provider-simulation evidence model binding exact transaction, policy, concrete block, gas evidence, sourced pricing, economic-outcome verification and expiry
 - V2 audit candidate binding execution to domain-separated current policy commitments, non-replayable simulation hashes and deadlines; V1 deployment remains unchanged and paused
-- scheduled monitoring scaffold for chain, block freshness, bytecode, pause/owner state, configuration events and canonical receipt reconciliation, with persisted sourced reports and optional webhook alerts
+- production monitoring active for chain, block freshness, bytecode, pause/owner state, configuration events and canonical receipt reconciliation, with persisted sourced reports and optional webhook alerts
+- first authenticated production monitoring run verified healthy on 2026-08-17 at X Layer testnet block `38523167`; executor and policy bytecode were present, the executor was paused under the expected owner, and no receipt failures or configuration issues were observed
+- Vercel daily cron registered for `/api/cron/monitor`; a separate GitHub Actions schedule calls the same authenticated fail-closed probe every 15 minutes
 - reproducible GitHub validation and Slither security workflow, incident runbook, protocol-selection record and independent-audit scope
 
 ## Not implemented / not production-ready
@@ -51,7 +53,7 @@ Last updated: 2026-08-17
 - LLM provider integration and prompt-injection hardening tests
 - production integration of provider-backed simulation into an authenticated transaction route
 - production protocol adapters or transaction broadcast
-- applied monitoring migration, provisioned cron/alert secrets, verified alert delivery, and end-to-end live portfolio persistence
+- configured external alert recipient and verified degraded-state alert delivery
 - reviewed testnet protocol adapter, independent audits, incident controls, OKLink publication, and mainnet validation
 
 The application is live only as a public X Layer testnet beta with production foundations. It is not a production trading agent or mainnet-ready product. Execution remains disabled.
@@ -62,7 +64,7 @@ The application is live only as a public X Layer testnet beta with production fo
 - promote only audited bytecode and reviewed configuration to X Layer mainnet (chain ID 196) using a separate monitored mainnet RPC and explicit launch approval
 - provision separate mainnet secrets only after launch approval; never promote the testnet deployer or testnet provider configuration
 - select a production-grade price-provider plan and verify fallback, rate-limit, and stale-data behavior under monitoring
-- choose one X Layer protocol and obtain independently verified target/asset addresses before implementing its adapter
+- choose one current X Layer testnet lending, staking, or RWA protocol and obtain independently verified target/asset addresses before implementing its adapter; official payment USDt0 is live but does not meet the reversible-opportunity requirement
 - commission contract and adapter security audits, remediate findings, and approve deployment artifacts
 - complete independent audits and invariant testing, then approve a separately funded mainnet deployer and deployment plan
 - execute a capped mainnet canary with explicit user signing, verify the canonical receipt independently, and confirm the refreshed portfolio

@@ -1,0 +1,29 @@
+name: Testnet monitoring
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: navi-testnet-monitor
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run authenticated production probe
+        env:
+          NAVI_MONITOR_URL: https://navi-sage-eight.vercel.app/api/cron/monitor
+          NAVI_CRON_SECRET: ${{ secrets.NAVI_CRON_SECRET }}
+        run: |
+          test -n "$NAVI_CRON_SECRET"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-all-errors --max-time 30 \
+            --header "Authorization: Bearer $NAVI_CRON_SECRET" \
+            "$NAVI_MONITOR_URL"

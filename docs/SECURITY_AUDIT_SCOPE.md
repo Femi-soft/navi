@@ -2,7 +2,7 @@
 
 Prepared: 2026-08-17
 
-Status: audit-ready foundation in progress. This document is not an audit report and does not represent independent approval.
+Status: audit-ready foundation in progress. Remote monitoring is active, but the adapter scope cannot be frozen before Gate 3 selects an eligible protocol. This document is not an audit report and does not represent independent approval.
 
 ## Candidate scope
 
@@ -37,8 +37,8 @@ An auditor with no authorship role must review the frozen source and selected ad
 
 ## Open release blockers
 
-- no current authoritative X Layer testnet financial protocol deployment has passed gate 3
+- no current authoritative X Layer testnet reversible opportunity protocol deployment has passed gate 3
 - no production adapter exists
 - V2 has not been independently audited or deployed
 - the deployed executor owner is not a reviewed multisig
-- alert recipients and high-frequency external monitoring are not provisioned
+- no external alert recipient is provisioned; the authenticated probe is scheduled independently every 15 minutes and persists failures
