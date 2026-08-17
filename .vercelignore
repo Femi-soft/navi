@@ -1,0 +1,12 @@
+.git
+.env*
+*.log
+navi-*.png
+artifacts
+cache
+ignition/deployments
+deployments
+contracts
+test
+scripts
+supabase/.temp

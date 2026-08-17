@@ -24,7 +24,8 @@
       "@navi/strategy": ["packages/strategy/src/index.ts"],
       "@navi/simulation": ["packages/simulation/src/index.ts"],
       "@navi/execution": ["packages/execution/src/index.ts"],
-      "@navi/ai": ["packages/ai/src/index.ts"]
+      "@navi/ai": ["packages/ai/src/index.ts"],
+      "@navi/database": ["packages/database/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", ".next/types/**/*.ts"],

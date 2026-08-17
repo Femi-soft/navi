@@ -11,25 +11,38 @@
   "scripts": {
     "dev": "npm run dev --workspace @navi/web",
     "build": "npm run build --workspace @navi/web",
+    "contracts:compile": "hardhat compile",
+    "contracts:test": "hardhat test nodejs",
+    "contracts:check": "npm run contracts:compile && npm run contracts:test",
+    "contracts:wallet:testnet": "node scripts/provision-testnet-deployer.mjs",
+    "contracts:balance:testnet": "node scripts/check-testnet-balance.mjs",
+    "contracts:deploy:testnet": "powershell -ExecutionPolicy Bypass -File scripts/deploy-xlayer-testnet.ps1 -AcknowledgeTestnetOnly",
+    "contracts:verify:testnet": "node scripts/verify-xlayer-testnet-deployment.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/safety.test.ts",
-    "validate": "npm run typecheck && npm run test && npm run build"
+    "validate": "npm run typecheck && npm run test && npm run contracts:check && npm run build"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "decimal.js": "^10.6.0",
+    "jose": "^6.2.8",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "viem": "^2.55.15",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
+    "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "caniuse-lite": "file:../../../AppData/Local/Temp/caniuse-lite-1.0.30001809.tgz",
+    "caniuse-lite": "1.0.30001809",
+    "hardhat": "^3.13.0",
     "typescript": "^5.9.0"
   }
 }

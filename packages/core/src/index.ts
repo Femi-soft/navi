@@ -13,6 +13,7 @@ export interface Opportunity extends SourceMetadata {
 
 export interface Portfolio extends SourceMetadata {
   wallet: string; chainId: number; totalUsd: Money; liquidUsd: Money; deployedUsd: Money;
+  nativeBalance: string; nativeSymbol: "OKB";
   currentApy: string; riskScore: number; updatedAt: string;
   allocation: { stablecoins: Money; defi: Money; rwa: Money; volatile: Money };
 }

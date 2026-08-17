@@ -1,26 +1,58 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @notice Non-production architecture skeleton. Missing governance, pause, spend limits and audit.
-contract NaviExecutor {
-    address public immutable owner;
-    mapping(address => bool) public approvedTargets;
-    mapping(bytes4 => bool) public approvedSelectors;
-    event ActionExecuted(address indexed user, address indexed target, bytes4 indexed selector, bytes32 strategyId);
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-    constructor() { owner = msg.sender; }
-    modifier onlyOwner() { require(msg.sender == owner, "not owner"); _; }
-    function setTarget(address target, bool approved) external onlyOwner { approvedTargets[target] = approved; }
-    function setSelector(bytes4 selector, bool approved) external onlyOwner { approvedSelectors[selector] = approved; }
+import {INaviAdapter} from "./interfaces/INaviAdapter.sol";
 
-    function execute(address target, bytes calldata data, bytes32 strategyId) external returns (bytes memory result) {
-        require(approvedTargets[target], "target blocked");
-        require(data.length >= 4, "missing selector");
-        bytes4 selector = bytes4(data[:4]);
-        require(approvedSelectors[selector], "selector blocked");
-        (bool ok, bytes memory returned) = target.call(data);
-        require(ok, "call failed");
-        emit ActionExecuted(msg.sender, target, selector, strategyId);
-        return returned;
+/// @notice Testnet foundation for routing user-authorized actions through reviewed adapters.
+/// @dev Deploys paused with an empty adapter allowlist. Adapters must enforce asset and amount bounds.
+contract NaviExecutor is Ownable2Step, Pausable, ReentrancyGuard {
+    error AdapterNotApproved(address adapter);
+    error AdapterNotContract(address adapter);
+    error EmptyStrategyId();
+
+    mapping(address adapter => bool approved) public approvedAdapters;
+
+    event AdapterApprovalSet(address indexed adapter, bool approved);
+    event ActionExecuted(
+        address indexed user,
+        address indexed adapter,
+        bytes32 indexed strategyId,
+        bytes32 adapterDataHash
+    );
+
+    constructor(address initialOwner) Ownable(initialOwner) {
+        _pause();
+    }
+
+    function setAdapter(address adapter, bool approved) external onlyOwner {
+        if (approved && adapter.code.length == 0) revert AdapterNotContract(adapter);
+        approvedAdapters[adapter] = approved;
+        emit AdapterApprovalSet(adapter, approved);
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    function execute(address adapter, bytes calldata adapterData, bytes32 strategyId)
+        external
+        whenNotPaused
+        nonReentrant
+        returns (bytes memory result)
+    {
+        if (!approvedAdapters[adapter]) revert AdapterNotApproved(adapter);
+        if (strategyId == bytes32(0)) revert EmptyStrategyId();
+
+        result = INaviAdapter(adapter).execute(msg.sender, adapterData, strategyId);
+        emit ActionExecuted(msg.sender, adapter, strategyId, keccak256(adapterData));
     }
 }

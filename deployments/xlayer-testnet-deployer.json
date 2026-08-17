@@ -1,0 +1,9 @@
+{
+  "chainId": 1952,
+  "address": "0xe416befb275d64f854C987F9D48B6D508E522839",
+  "purpose": "NAVI_X_LAYER_TESTNET_DEPLOYER",
+  "status": "DEPLOYED_TESTNET_ONLY",
+  "balanceOkb": "0.199983382553",
+  "source": "X_LAYER_TESTNET_RPC_DEPLOYMENT_VERIFICATION",
+  "retrievedAt": "2026-08-17T10:59:27.086Z"
+}

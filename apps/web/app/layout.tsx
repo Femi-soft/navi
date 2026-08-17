@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NAVI — Your crypto decision layer",
-  description: "Understand, compare, and safely simulate crypto opportunities."
+  title: "NAVI | X Layer testnet beta",
+  description: "Connect a wallet, inspect verified testnet balances, and explore policy-constrained strategies.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

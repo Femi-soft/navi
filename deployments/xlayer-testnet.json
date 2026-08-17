@@ -1,0 +1,47 @@
+{
+  "chainId": 1952,
+  "network": "X_LAYER_TESTNET",
+  "deployer": "0xe416befb275d64f854C987F9D48B6D508E522839",
+  "contracts": {
+    "NaviExecutor": {
+      "address": "0xc019eD728d1A23C995bf7056de1BCc8d9DF32b1d",
+      "transactionHash": "0x2e493d74dd19badde7129e7c312786cc7097de0a7944143d22354b40e923e48c",
+      "blockNumber": "38505441",
+      "hasBytecode": true,
+      "owner": "0xe416befb275d64f854C987F9D48B6D508E522839",
+      "paused": true,
+      "adapterAllowlist": "EMPTY",
+      "sourceVerification": {
+        "provider": "SOURCIFY",
+        "match": "EXACT_MATCH",
+        "creationMatch": "EXACT_MATCH",
+        "runtimeMatch": "EXACT_MATCH",
+        "url": "https://sourcify.dev/server/repo-ui/1952/0xc019eD728d1A23C995bf7056de1BCc8d9DF32b1d",
+        "source": "SOURCIFY_PUBLIC_API",
+        "retrievedAt": "2026-08-17T11:06:30.895Z"
+      }
+    },
+    "NaviPolicyManager": {
+      "address": "0x86883d049b0A09d02Eeb056527e7a24522D89F23",
+      "transactionHash": "0x69809779d389616e743fb5d6d41d6dccc68c480f0c57335ddf05a948113b7a6a",
+      "blockNumber": "38505444",
+      "hasBytecode": true,
+      "sourceVerification": {
+        "provider": "SOURCIFY",
+        "match": "EXACT_MATCH",
+        "creationMatch": "EXACT_MATCH",
+        "runtimeMatch": "EXACT_MATCH",
+        "url": "https://sourcify.dev/server/repo-ui/1952/0x86883d049b0A09d02Eeb056527e7a24522D89F23",
+        "source": "SOURCIFY_PUBLIC_API",
+        "retrievedAt": "2026-08-17T11:06:30.895Z"
+      }
+    }
+  },
+  "verification": {
+    "status": "VERIFIED_TESTNET_DEPLOYMENT_AND_SOURCE",
+    "latestBlock": "38505530",
+    "remainingDeployerBalanceOkb": "0.199983382553",
+    "source": "X_LAYER_TESTNET_RPC_DEPLOYMENT_VERIFICATION",
+    "retrievedAt": "2026-08-17T10:59:27.086Z"
+  }
+}

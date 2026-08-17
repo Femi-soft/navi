@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_24-9e13a6b10c7fd2abc6ff4df55bfa12f9b6bae2ef",
+  "solcVersion": "0.8.24",
+  "solcLongVersion": "0.8.24+commit.e11b9ed9",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.13.0"
+  },
+  "userSourceNameMap": {
+    "contracts/NaviPolicyManager.sol": "project/contracts/NaviPolicyManager.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/NaviPolicyManager.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @notice Stores user-authorized commitments to canonical, versioned NAVI policies.\ncontract NaviPolicyManager {\n    error EmptyPolicyHash();\n\n    struct Commitment {\n        bytes32 policyHash;\n        uint256 version;\n    }\n\n    mapping(address => Commitment) public commitments;\n    event PolicyCommitted(address indexed user, bytes32 policyHash, uint256 version);\n\n    function commit(bytes32 policyHash) external returns (uint256 nextVersion) {\n        if (policyHash == bytes32(0)) revert EmptyPolicyHash();\n        nextVersion = commitments[msg.sender].version + 1;\n        commitments[msg.sender] = Commitment(policyHash, nextVersion);\n        emit PolicyCommitted(msg.sender, policyHash, nextVersion);\n    }\n}\n"
+      }
+    }
+  }
+}
