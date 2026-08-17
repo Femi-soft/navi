@@ -82,4 +82,58 @@ describe("NAVI contracts", async function () {
     await executor.write.acceptOwnership({ account: nextOwner.account });
     assert.equal((await executor.read.owner()).toLowerCase(), nextOwner.account.address.toLowerCase());
   });
+
+  it("binds V2 execution to current policy, unused simulation evidence, deadline, and value", async function () {
+    const [owner, user] = await viem.getWalletClients();
+    const policy = await viem.deployContract("NaviPolicyManagerV2");
+    const executor = await viem.deployContract("NaviExecutorV2", [owner.account.address, policy.address]);
+    const adapter = await viem.deployContract("MockNaviAdapterV2", [executor.address]);
+    const documentHash = keccak256(stringToHex("canonical-policy-v1"));
+    const strategyId = keccak256(stringToHex("strategy-v2"));
+    const simulationHash = keccak256(stringToHex("signed-provider-simulation"));
+    await policy.write.commit([documentHash], { account:user.account });
+    const commitment = await policy.read.commitments([user.account.address]);
+    await executor.write.setAdapter([adapter.address,true]);
+    await executor.write.unpause();
+    const deadline=BigInt(Math.floor(Date.now()/1_000)+300);
+    const args=[adapter.address,stringToHex("bounded-call"),{strategyId,simulationHash,policyCommitmentHash:commitment[1],policyVersion:commitment[2],deadline}] as const;
+    await executor.write.execute(args,{ account:user.account,value:123n });
+    assert.equal((await adapter.read.lastUser()).toLowerCase(),user.account.address.toLowerCase());
+    assert.equal(await adapter.read.lastValue(),123n);
+    assert.equal(await executor.read.consumedSimulations([user.account.address,simulationHash]),true);
+    await assert.rejects(executor.write.execute(args,{ account:user.account,value:123n }));
+  });
+
+  it("fails V2 closed for stale policy, expired evidence, and direct adapter calls", async function () {
+    const [owner,user] = await viem.getWalletClients();
+    const policy = await viem.deployContract("NaviPolicyManagerV2");
+    const executor = await viem.deployContract("NaviExecutorV2", [owner.account.address,policy.address]);
+    const adapter = await viem.deployContract("MockNaviAdapterV2", [executor.address]);
+    const first=keccak256(stringToHex("policy-1"));
+    await policy.write.commit([first],{account:user.account});
+    const stale=await policy.read.commitments([user.account.address]);
+    await policy.write.commit([keccak256(stringToHex("policy-2"))],{account:user.account});
+    await executor.write.setAdapter([adapter.address,true]);
+    await executor.write.unpause();
+    const strategyId=keccak256(stringToHex("strategy"));
+    const simulationHash=keccak256(stringToHex("simulation"));
+    const common=[adapter.address,"0x"] as const;
+    await assert.rejects(executor.write.execute([...common,{strategyId,simulationHash,policyCommitmentHash:stale[1],policyVersion:stale[2],deadline:BigInt(Math.floor(Date.now()/1_000)+60)}],{account:user.account}));
+    const current=await policy.read.commitments([user.account.address]);
+    await assert.rejects(executor.write.execute([...common,{strategyId,simulationHash,policyCommitmentHash:current[1],policyVersion:current[2],deadline:1n}],{account:user.account}));
+    await assert.rejects(adapter.write.execute([user.account.address,"0x",strategyId],{account:user.account}));
+  });
+
+  it("keeps domain-separated V2 policy commitments unique across sequential versions", async function () {
+    const [,user]=await viem.getWalletClients();
+    const policy=await viem.deployContract("NaviPolicyManagerV2");
+    const seen=new Set<string>();
+    for(let version=1;version<=24;version++) {
+      await policy.write.commit([keccak256(stringToHex(`policy-document-${version}`))],{account:user.account});
+      const commitment=await policy.read.commitments([user.account.address]);
+      assert.equal(commitment[2],BigInt(version));
+      assert.equal(seen.has(commitment[1]),false);
+      seen.add(commitment[1]);
+    }
+  });
 });

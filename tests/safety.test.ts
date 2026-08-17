@@ -4,13 +4,15 @@ import { demoPolicy, evaluateOpportunity, isPolicyAllowed } from "@navi/policy";
 import { demoOpportunities } from "@navi/opportunities";
 import { demoPortfolio } from "@navi/portfolio";
 import { generateStrategy } from "@navi/strategy";
-import { demoSimulator } from "@navi/simulation";
-import { ExecutionBuilder } from "@navi/execution";
+import { demoSimulator, ProviderSimulationAttestor, XLayerRpcSimulationProvider } from "@navi/simulation";
+import { ExecutionBuilder, XLayerReceiptVerifier } from "@navi/execution";
 import type { AuthStore, NonceRecord } from "@navi/database";
 import { issueWalletChallenge, verifyWalletChallenge } from "../apps/web/lib/server/auth.ts";
 import { privateKeyToAccount } from "viem/accounts";
+import { keccak256, stringToHex } from "viem";
 import { productionReadiness, readProductionConfig } from "../apps/web/lib/server/config.ts";
 import { parseCoinGeckoOkbPrice } from "@navi/portfolio";
+import { evaluateExecutorState } from "../apps/web/lib/server/monitoring.ts";
 
 class MemoryAuthStore implements AuthStore {
   nonces = new Map<string, NonceRecord & { consumed:boolean }>();
@@ -45,11 +47,65 @@ describe("NAVI safety boundaries", () => {
     const opportunities = await demoOpportunities.discover();
     const strategy = generateStrategy({ intent:{ objective:"yield", capitalUsd:"4000", minimumLiquidUsd:"1000", riskPreference:"conservative", leverageAllowed:false }, portfolio, opportunities, policy:demoPolicy });
     const simulation = await demoSimulator.simulate(strategy, portfolio, []);
-    const builder = new ExecutionBuilder();
+    const builder = new ExecutionBuilder(1952, { async verify() { return false; } });
     await assert.rejects(
       builder.prepare("anything", { from:"0x71000000000000000000000000000000000042af", target:"0x0000000000000000000000000000000000000001", simulation }),
       /SIMULATION_INVALID_OR_NOT_PROVIDER_VERIFIED/
     );
+  });
+
+  it("verifies canonical receipts on the explicitly selected X Layer network", async () => {
+    const receipt = { status:"success", blockHash:"0x1234", blockNumber:42n } as const;
+    const verifier = new XLayerReceiptVerifier({
+      async getChainId() { return 1952; },
+      async waitForTransactionReceipt() { return receipt as never; },
+      async getTransactionReceipt() { return receipt as never; },
+    }, 1952, 2);
+    const verified = await verifier.verify("0xabcd");
+    assert.equal(verified.chainId, 1952);
+    assert.equal(verified.blockNumber, "42");
+  });
+
+  it("rejects receipt verification on a different X Layer network", async () => {
+    const verifier = new XLayerReceiptVerifier({
+      async getChainId() { return 196; },
+      async waitForTransactionReceipt() { throw new Error("must not wait"); },
+      async getTransactionReceipt() { throw new Error("must not read"); },
+    }, 1952);
+    await assert.rejects(verifier.verify("0xabcd"), /WRONG_NETWORK/);
+  });
+
+  it("attests provider simulation evidence and rejects any transaction tampering", async () => {
+    const now=Date.now();
+    const before={ ...(await demoPortfolio.read("0x71000000000000000000000000000000000042af")), chainId:1952 };
+    const attestor=new ProviderSimulationAttestor("test-only-simulation-attestation-secret-1234567890");
+    const provider=new XLayerRpcSimulationProvider({
+      async getChainId() { return 1952; },
+      async getBlock() { return { number:123n, hash:`0x${"12".repeat(32)}` as const, timestamp:BigInt(Math.floor(now/1_000)) }; },
+      async call() { return { data:"0x01" as const }; },
+      async estimateGas() { return 75_000n; },
+      async getGasPrice() { return 1_000_000_000n; },
+    }, attestor, {
+      async verify() { return { after:{ liquidUsd:"99.00", riskScore:10 }, expectedSlippageUsd:"0.01", warnings:[] }; },
+    }, 1952, "TEST_X_LAYER_RPC");
+    const simulation=await provider.simulate({
+      strategyId:"strategy_test", before, policyHash:keccak256(stringToHex("policy-v1")), policyVersion:1, policyValidation:[],
+      transaction:{ chainId:1952, from:"0x71000000000000000000000000000000000042af", to:"0x0000000000000000000000000000000000000001", data:"0x1234", valueWei:"10" },
+      nativePrice:{ usd:"100.00", source:"TEST_PRICE", retrievedAt:new Date(now).toISOString() },
+    }, now);
+    assert.equal(await attestor.verify(simulation), true);
+    assert.equal(simulation.evidence.blockNumber, "123");
+    assert.equal(simulation.source, "TEST_X_LAYER_RPC+TEST_PRICE");
+    assert.equal(await attestor.verify({ ...simulation, transaction:{ ...simulation.transaction, data:"0x5678" } }), false);
+    const builder=new ExecutionBuilder(1952,attestor);
+    builder.register({
+      id:"tampering-adapter", chainId:1952, allowedTargets:[simulation.transaction.to],
+      async prepare() {
+        return { chainId:1952, from:simulation.transaction.from, to:simulation.transaction.to, data:"0x5678", value:10n,
+          gasEstimate:75_000n, description:"tampered", simulationId:simulation.id, expiresAt:simulation.expiresAt };
+      },
+    });
+    await assert.rejects(builder.prepare("tampering-adapter",{ from:simulation.transaction.from,target:simulation.transaction.to,simulation }),/PREPARED_TRANSACTION_NOT_SIMULATED/);
   });
 
   it("fails closed when production credentials are absent", () => {
@@ -105,4 +161,13 @@ describe("NAVI safety boundaries", () => {
     assert.deepEqual(parseCoinGeckoOkbPrice(raw,"api.coingecko.com",180_000,now), { usd:"123.456789", source:"COINGECKO_OKB_USD:api.coingecko.com", retrievedAt:"2027-01-15T08:00:00.000Z" });
     assert.throws(()=>parseCoinGeckoOkbPrice(raw,"api.coingecko.com",180_000,now+181_000),/STALE_PRICE_DATA/);
   });
+
+  it("detects unsafe executor monitoring state deterministically", () => {
+    const owner="0x71000000000000000000000000000000000042af";
+    assert.deepEqual(evaluateExecutorState({chainId:1952,expectedChainId:1952,blockAgeSeconds:1,executorCode:"0x01",policyCode:"0x02",paused:true,owner,expectedOwner:owner}),[]);
+    assert.deepEqual(evaluateExecutorState({chainId:196,expectedChainId:1952,blockAgeSeconds:121,executorCode:"0x",policyCode:"0x",paused:false,owner,expectedOwner:"0x0000000000000000000000000000000000000001"}),[
+      "WRONG_NETWORK","STALE_BLOCK","EXECUTOR_BYTECODE_MISSING","POLICY_MANAGER_BYTECODE_MISSING","EXECUTOR_UNEXPECTEDLY_UNPAUSED","EXECUTOR_OWNER_CHANGED"
+    ]);
+  });
+
 });

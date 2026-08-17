@@ -19,6 +19,10 @@ No arbitrary protocol adapter has been added. A production adapter requires an e
 
 The onchain executor mirrors that boundary: it can call only a reviewed `INaviAdapter`, deploys paused, and begins with an empty adapter allowlist. It passes the initiating user and immutable strategy identifier to the adapter and records a hash of adapter calldata. Protocol-specific validation remains the adapter's responsibility; the executor is not evidence that a simulation or policy decision was valid.
 
+The V2 audit candidate strengthens this sequence without altering the deployed V1 bytecode. An adapter-defined unsigned transaction is simulated through an X Layer provider at a concrete block. NAVI binds the exact chain, sender, target, calldata, value, policy, block and expiry into signed server evidence. Transaction preparation verifies that attestation and revalidates the final wallet artifact. V2 additionally checks the user's current domain-separated policy commitment, consumes the simulation hash once per user and enforces its deadline onchain. V2 is not deployed or approved until a protocol adapter and independent audit complete their gates.
+
+Monitoring is a server-only scheduled boundary. It records sourced RPC state, deployed bytecode, executor pause and ownership state, configuration events and independently read canonical receipts. Monitoring observations may raise incidents or finalize a confirmed execution record, but they do not authorize transactions.
+
 ## Package responsibilities
 
 | Package | Responsibility | May prepare transactions? |

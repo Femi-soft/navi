@@ -34,6 +34,15 @@ const liveSchema = authSchema.extend({
   PRICE_MAX_AGE_SECONDS: z.coerce.number().int().min(30).max(600).default(180),
 });
 
+const monitoringSchema = liveSchema.extend({
+  CRON_SECRET: z.string().min(32),
+  NAVI_EXECUTOR_ADDRESS: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  NAVI_POLICY_MANAGER_ADDRESS: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  EXPECTED_EXECUTOR_OWNER: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  MONITORING_WEBHOOK_URL: z.string().url().startsWith("https://").optional(),
+  RECEIPT_CONFIRMATIONS: z.coerce.number().int().min(1).max(64).default(2),
+});
+
 type ParsedAuthConfig = z.infer<typeof authSchema>;
 type ParsedLiveConfig = z.infer<typeof liveSchema>;
 
@@ -45,6 +54,7 @@ export type AuthConfig = ParsedAuthConfig & {
 export type ProductionConfig = ParsedLiveConfig & AuthConfig & {
   rpcUrl: string;
 };
+export type MonitoringConfig = z.infer<typeof monitoringSchema> & ProductionConfig;
 
 function parseConfig<T>(schema: z.ZodType<T>, env: NodeJS.ProcessEnv, prefix: string): T {
   const parsed = schema.safeParse(env);
@@ -70,6 +80,14 @@ export function readProductionConfig(env: NodeJS.ProcessEnv = process.env): Prod
   if (!rpcUrl) throw new Error(`PRODUCTION_CONFIG_INVALID:${X_LAYER_NETWORKS[config.NAVI_NETWORK].rpcEnvKey}`);
   if (config.NAVI_NETWORK === "mainnet" && !config.PRICE_API_KEY) throw new Error("PRODUCTION_CONFIG_INVALID:PRICE_API_KEY");
   return { ...config, rpcUrl };
+}
+
+export function readMonitoringConfig(env:NodeJS.ProcessEnv=process.env):MonitoringConfig {
+  const parsed=withNetwork(parseConfig(monitoringSchema, env, "MONITORING_CONFIG_INVALID"));
+  const rpcUrl=parsed.NAVI_NETWORK === "testnet" ? parsed.X_LAYER_TESTNET_RPC_URL : parsed.X_LAYER_RPC_URL;
+  if (!rpcUrl) throw new Error(`MONITORING_CONFIG_INVALID:${X_LAYER_NETWORKS[parsed.NAVI_NETWORK].rpcEnvKey}`);
+  if (parsed.NAVI_NETWORK === "mainnet" && !parsed.PRICE_API_KEY) throw new Error("MONITORING_CONFIG_INVALID:PRICE_API_KEY");
+  return { ...parsed, rpcUrl };
 }
 
 export function productionReadiness(env: NodeJS.ProcessEnv = process.env) {

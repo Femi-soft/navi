@@ -38,15 +38,20 @@ Last updated: 2026-08-17
 - remote migration `20260817000100` applied on 2026-08-17, allowing wallet records only for X Layer testnet `1952` and mainnet `196`
 - public testnet beta deployed to Vercel at `https://navi-sage-eight.vercel.app` with encrypted Supabase and QuickNode secrets; no deployer key or mainnet RPC was uploaded
 - live-domain verification on 2026-08-17: page and health `200`, RPC chain `1952` fresh and verified, security headers present, disposable-wallet login/live portfolio/replay rejection passed, and test records removed
+- explicit chain-1952/196 execution and receipt verification configuration with final prepared-transaction revalidation
+- signed provider-simulation evidence model binding exact transaction, policy, concrete block, gas evidence, sourced pricing, economic-outcome verification and expiry
+- V2 audit candidate binding execution to domain-separated current policy commitments, non-replayable simulation hashes and deadlines; V1 deployment remains unchanged and paused
+- scheduled monitoring scaffold for chain, block freshness, bytecode, pause/owner state, configuration events and canonical receipt reconciliation, with persisted sourced reports and optional webhook alerts
+- reproducible GitHub validation and Slither security workflow, incident runbook, protocol-selection record and independent-audit scope
 
 ## Not implemented / not production-ready
 
 - live token/protocol position readers and a selected production price provider (native-balance/provider seam exists)
 - live DeFi/RWA ingestion and freshness monitoring
 - LLM provider integration and prompt-injection hardening tests
-- provider-backed transaction simulation
+- production integration of provider-backed simulation into an authenticated transaction route
 - production protocol adapters or transaction broadcast
-- scheduled monitoring, alerts, and end-to-end live portfolio persistence
+- applied monitoring migration, provisioned cron/alert secrets, verified alert delivery, and end-to-end live portfolio persistence
 - reviewed testnet protocol adapter, independent audits, incident controls, OKLink publication, and mainnet validation
 
 The application is live only as a public X Layer testnet beta with production foundations. It is not a production trading agent or mainnet-ready product. Execution remains disabled.

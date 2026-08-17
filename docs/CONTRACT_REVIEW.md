@@ -35,3 +35,7 @@ Execution events now bind the user, adapter, strategy ID, and adapter-data hash.
 ## Deployment posture
 
 Hardhat Ignition deploys `NaviPolicyManager` and a paused `NaviExecutor` with no adapters. The testnet launcher refuses the wrong chain and requires an explicit testnet-only acknowledgement. A deployment does not enable transaction execution.
+
+## V2 audit candidate
+
+`NaviExecutorV2` and `NaviPolicyManagerV2` are undeployed audit candidates. They add domain-separated policy commitments, a typed execution-evidence tuple, current-policy enforcement, per-user simulation replay prevention, an onchain deadline, value forwarding and an adapter-only caller expectation. Their tests are part of `contracts:check`; they do not change or supersede the verified V1 deployment until an independent audit and explicit deployment approval.
