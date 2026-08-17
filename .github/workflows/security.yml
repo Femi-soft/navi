@@ -20,6 +20,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run validate
+      - name: Audit deployed dependencies
+        run: npm audit --omit=dev --audit-level=low
+      - name: Create commit-bound audit manifest
+        run: npm run security:manifest > audit-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: navi-audit-manifest-${{ github.sha }}
+          path: audit-manifest.json
+          if-no-files-found: error
+          retention-days: 90
 
   slither:
     runs-on: ubuntu-latest

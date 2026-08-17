@@ -31,6 +31,8 @@ The deployed V1 contracts are excluded from promotion. They remain paused and ar
 
 Provide the source commit, clean-tree status, compiler and optimizer settings, dependency lockfile, runtime and creation bytecode hashes, constructor arguments, deployment plan, tests, static-analysis output, protocol address evidence and known limitations. Run `npm.cmd run validate` and the GitHub `Security gates` workflow against the frozen commit.
 
+The `Security gates` workflow publishes `navi-audit-manifest-<commit>` for 90 days. The manifest binds the candidate source files, compiler settings and lockfile to the exact clean commit. The production-only npm audit reported zero vulnerabilities on 2026-08-17. The complete dependency audit reported 11 low-severity findings confined to the Hardhat development and verification dependency graph through ethers v5 and `elliptic`; npm offered no complete upstream fix. These tools are not shipped in the Next.js runtime, but the advisory remains part of the auditor's supply-chain scope.
+
 ## Independent acceptance
 
 An auditor with no authorship role must review the frozen source and selected adapter, publish a report tied to the exact commit and bytecode, and verify remediation of all critical and high findings. Automated tests and Slither are inputs to that review, not substitutes for it.
