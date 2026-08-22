@@ -1,8 +1,8 @@
 # Protocol selection gate
 
-Reviewed: 2026-08-17
+Reviewed: 2026-08-22
 
-Status: blocked. No financial protocol adapter is approved or deployed. The X Layer testnet executor remains paused with an empty allowlist.
+Status: X Layer protocol selection remains blocked. The separate Base Sepolia validation lane has a deployed, source-verified Aave adapter, but it remains unapproved behind a paused V2 executor pending independent review. No financial protocol adapter is approved on any network.
 
 ## Acceptance criteria
 
@@ -19,7 +19,9 @@ A protocol is eligible only when all of the following are independently establis
 
 ### Stader ETHx
 
-Stader's official `ethx_oft` repository publishes an X Layer testnet pool and token address set. On 2026-08-17, NAVI queried those addresses through the configured QuickNode chain-1952 endpoint. The pool, ETHx token and OFT addresses all returned empty bytecode. The published deployment is stale and is rejected.
+Stader's official `ethx_oft` repository publishes an X Layer testnet pool and token address set. On 2026-08-17 at block `38528975`, NAVI queried all six published addresses through the configured QuickNode chain-1952 endpoint. The ProxyAdmin, ETHx token, OFT, wrapper, pool and rate receiver all returned empty bytecode. The published deployment is stale and is rejected.
+
+NAVI reported the stale deployment to Stader in [`stader-labs/ethx_oft#13`](https://github.com/stader-labs/ethx_oft/issues/13), requesting either an authoritative redeployment with provenance and audit mapping or an explicit retirement notice.
 
 ### Uniswap
 
@@ -42,3 +44,11 @@ X Layer's official contract table lists testnet WETH at `0xBec7859BC3d0603BeC454
 ## Unblock evidence
 
 Record the selected protocol, official source URLs, chain ID, targets, runtime bytecode hashes, proxy implementations and admins, assets and decimals, selectors, limits, audit scope and RPC retrieval timestamp here. A reviewer other than the implementer must sign off before adapter implementation or deployment.
+
+An X Layer request for a maintained chain-1952 DeFi/RWA deployment registry is open in [`okx/xlayer-docs#182`](https://github.com/okx/xlayer-docs/issues/182). A protocol-team response or X Layer registry entry is discovery evidence only; every acceptance criterion above must still pass before NAVI implements or approves an adapter.
+
+## Base Sepolia validation lane
+
+Aave's official address book identifies its Base Sepolia V3 pool, USDC reserve and aUSDC token. NAVI deployed a fixed-address, fixed-asset, capped supply/withdraw adapter using the registry pinned at commit `dd5a718d6739342882dd3327739dc037c4fd0028`. Current bytecode, proxy, reserve and constructor relationships passed live verification. The adapter remains unapproved and the executor paused until independent review accepts or remediates the open Slither findings.
+
+Centrifuge's official Base Sepolia environment registry is pinned at commit `304257ce844356b5302f44135dbea9ee2447ab2f`. Its core is authoritative, but the registry does not identify an investable vault with asset, eligibility and exit evidence. The bounded ERC-4626 adapter is therefore code-only and not deployment-eligible. See `docs/BASE_SEPOLIA_DEPLOYMENT.md`.

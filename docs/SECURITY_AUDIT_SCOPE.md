@@ -1,15 +1,17 @@
 # Independent security audit scope
 
-Prepared: 2026-08-17
+Prepared: 2026-08-22
 
-Status: audit-ready foundation in progress. Remote monitoring is active, but the adapter scope cannot be frozen before Gate 3 selects an eligible protocol. This document is not an audit report and does not represent independent approval.
+Status: audit evidence package in progress. The Base Sepolia V2 contracts and Aave adapter are deployed with exact source matches, but the executor remains paused and the adapter remains unapproved. This document and the internal Slither triage are not an audit report and do not represent independent approval.
 
 ## Candidate scope
 
 - `contracts/NaviExecutorV2.sol`
 - `contracts/NaviPolicyManagerV2.sol`
 - `contracts/interfaces/INaviAdapterV2.sol`
-- the selected protocol adapter and its protocol interfaces once gate 3 is satisfied
+- `contracts/adapters/AaveSupplyWithdrawAdapterV2.sol`
+- `contracts/adapters/BoundedERC4626AdapterV2.sol`
+- `contracts/interfaces/IAavePool.sol`
 - `packages/simulation/src/index.ts` attestation, binding, freshness and provider evidence
 - `packages/execution/src/index.ts` adapter registry, exact-transaction validation and receipt verification
 - monitoring, receipt reconciliation and deployment configuration affecting execution safety
@@ -40,7 +42,9 @@ An auditor with no authorship role must review the frozen source and selected ad
 ## Open release blockers
 
 - no current authoritative X Layer testnet reversible opportunity protocol deployment has passed gate 3
+- the deployed Base Sepolia Aave adapter has not received independent review
+- no investable Centrifuge test vault has been identified; its adapter remains code-only
 - no production adapter exists
-- V2 has not been independently audited or deployed
+- V2 has not been independently audited
 - the deployed executor owner is not a reviewed multisig
 - no external alert recipient is provisioned; the authenticated probe is scheduled independently every 15 minutes and persists failures

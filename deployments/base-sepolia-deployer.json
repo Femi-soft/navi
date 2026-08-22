@@ -1,0 +1,10 @@
+{
+  "chainId": 84532,
+  "address": "0xa24289448904ce7a4126448735D6fA0C7f246b72",
+  "purpose": "NAVI_BASE_SEPOLIA_DEPLOYER",
+  "status": "FUNDED_AFTER_GUARDED_DEPLOYMENT",
+  "balanceEth": "0.004989532471480543",
+  "latestBlock": "45825061",
+  "source": "BASE_DOCUMENTED_PUBLIC_FALLBACK_NATIVE_BALANCE",
+  "retrievedAt": "2026-08-22T17:06:51.212Z"
+}

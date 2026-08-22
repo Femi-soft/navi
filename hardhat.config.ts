@@ -37,5 +37,12 @@ export default defineConfig({
       url: configVariable("X_LAYER_TESTNET_RPC_URL"),
       accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
     },
+    baseSepolia: {
+      type: "http",
+      chainType: "op",
+      chainId: 84532,
+      url: configVariable("BASE_SEPOLIA_RPC_URL"),
+      accounts: [configVariable("BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY")],
+    },
   },
 });

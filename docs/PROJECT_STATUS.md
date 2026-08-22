@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-17
+Last updated: 2026-08-22
 
 ## Implemented scaffold
 
@@ -45,6 +45,17 @@ Last updated: 2026-08-17
 - first authenticated production monitoring run verified healthy on 2026-08-17 at X Layer testnet block `38523167`; executor and policy bytecode were present, the executor was paused under the expected owner, and no receipt failures or configuration issues were observed
 - Vercel daily cron registered for `/api/cron/monitor`; a separate GitHub Actions schedule calls the same authenticated fail-closed probe every 15 minutes
 - reproducible GitHub validation and Slither security workflow, incident runbook, protocol-selection record and independent-audit scope
+- authoritative deployment requests filed with Stader and X Layer after a fresh chain-1952 probe confirmed all six Stader-published testnet addresses had zero bytecode at block `38528975`
+- isolated Base Sepolia chain-84532 configuration, dedicated deployer, guarded V2 Ignition module and fail-closed deployment verifier
+- dedicated Base Sepolia deployer funded with `0.005 ETH` on 2026-08-22 and independently confirmed at block `45824878`
+- Base Sepolia Aave preflight refreshed successfully on 2026-08-22 at block `45824909`: target bytecode, pool and aToken implementations, USDC metadata, reserve mapping, and pool relationships all matched the pinned registry commit
+- guarded Base Sepolia V2 deployment independently verified on 2026-08-22: `NaviPolicyManagerV2` (`0xE8e57B04986F26296A8f86582a9a3cdfdb6D4DF7`), `NaviExecutorV2` (`0x9D110a71F36a4fb1Feaa06E3F76C2e1136C9ACBa`), and `AaveSupplyWithdrawAdapterV2` (`0xA3E6fA5a29b36D83eDF05a4748AbF627E87b5509`) all have successful creation receipts and deployed bytecode
+- Base Sepolia V2 executor remains paused, owned by the dedicated deployer, and reports the Aave adapter as unapproved; the adapter is bound to the verified Aave pool, USDC, aUSDC, executor, and `1000.000000` USDC action cap
+- Sourcify independently reported exact creation and runtime bytecode matches for all three Base Sepolia contracts on 2026-08-22; reusable chain-guarded publication tooling is available through `npm run contracts:publish:base-sepolia`
+- manual BaseScan Standard JSON verification was reported complete by the operator for all three Base Sepolia contracts on 2026-08-22; BaseScan's Cloudflare challenge and credentialed V2 API prevented a separate machine confirmation of the explorer badge
+- Base-documented PublicNode fallback explicitly selected for Base Sepolia testnet after two authenticated QuickNode endpoints failed state reads; saved provenance and an extra deployment acknowledgement prevent silent promotion
+- fixed-target Aave V3 USDC supply/withdraw adapter capped at `1000.000000` USDC per action, plus an immutable bounded ERC-4626 vault adapter candidate
+- local adapter tests cover Aave and ERC-4626 entry/exit, executor-only access, caps, minimum output and zero residual adapter custody
 
 ## Not implemented / not production-ready
 
@@ -55,6 +66,10 @@ Last updated: 2026-08-17
 - production protocol adapters or transaction broadcast
 - configured external alert recipient and verified degraded-state alert delivery
 - reviewed testnet protocol adapter, independent audits, incident controls, OKLink publication, and mainnet validation
+- independent acceptance or remediation of the Base Sepolia Slither report: 8 high, 3 medium, 2 low and 1 informational results remain open; internal triage is not audit approval
+- authenticated Base Sepolia RPC and independent adapter review
+- resolve the Base Sepolia provider outage observed on 2026-08-19: chain metadata succeeded, but authenticated balance, bytecode and contract-call reads returned HTTP `503`
+- an authoritative investable Centrifuge test vault with asset, eligibility, liquidity and exit evidence
 
 The application is live only as a public X Layer testnet beta with production foundations. It is not a production trading agent or mainnet-ready product. Execution remains disabled.
 
@@ -65,6 +80,7 @@ The application is live only as a public X Layer testnet beta with production fo
 - provision separate mainnet secrets only after launch approval; never promote the testnet deployer or testnet provider configuration
 - select a production-grade price-provider plan and verify fallback, rate-limit, and stale-data behavior under monitoring
 - choose one current X Layer testnet lending, staking, or RWA protocol and obtain independently verified target/asset addresses before implementing its adapter; official payment USDt0 is live but does not meet the reversible-opportunity requirement
+- resolve the external protocol-authority requests in `stader-labs/ethx_oft#13` and `okx/xlayer-docs#182`, then independently validate any supplied deployment before adapter work
 - commission contract and adapter security audits, remediate findings, and approve deployment artifacts
 - complete independent audits and invariant testing, then approve a separately funded mainnet deployer and deployment plan
 - execute a capped mainnet canary with explicit user signing, verify the canonical receipt independently, and confirm the refreshed portfolio

@@ -6,6 +6,8 @@ artifacts/
 cache/
 tsconfig.tsbuildinfo
 audit-manifest.json
+.security-output/
+.tmp-basescan-check/
 ignition/deployments/chain-31337/
 .env
 .env.local

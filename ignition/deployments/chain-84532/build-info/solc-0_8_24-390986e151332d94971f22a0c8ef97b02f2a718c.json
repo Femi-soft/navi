@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_24-390986e151332d94971f22a0c8ef97b02f2a718c",
+  "solcVersion": "0.8.24",
+  "solcLongVersion": "0.8.24+commit.e11b9ed9",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.13.0"
+  },
+  "userSourceNameMap": {
+    "contracts/NaviPolicyManagerV2.sol": "project/contracts/NaviPolicyManagerV2.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/NaviPolicyManagerV2.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @notice Stores domain-separated commitments to canonical, versioned NAVI policy documents.\ncontract NaviPolicyManagerV2 {\n    error EmptyPolicyDocumentHash();\n\n    bytes32 public constant POLICY_DOMAIN = keccak256(\"NAVI_POLICY_V2\");\n\n    struct Commitment {\n        bytes32 documentHash;\n        bytes32 commitmentHash;\n        uint256 version;\n    }\n\n    mapping(address user => Commitment commitment) public commitments;\n    event PolicyCommitted(address indexed user, bytes32 indexed documentHash, bytes32 commitmentHash, uint256 version);\n\n    function commit(bytes32 documentHash) external returns (bytes32 commitmentHash, uint256 nextVersion) {\n        if (documentHash == bytes32(0)) revert EmptyPolicyDocumentHash();\n        nextVersion = commitments[msg.sender].version + 1;\n        commitmentHash = keccak256(abi.encode(POLICY_DOMAIN, block.chainid, msg.sender, nextVersion, documentHash));\n        commitments[msg.sender] = Commitment(documentHash, commitmentHash, nextVersion);\n        emit PolicyCommitted(msg.sender, documentHash, commitmentHash, nextVersion);\n    }\n}\n"
+      }
+    }
+  }
+}

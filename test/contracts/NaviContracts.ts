@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { network } from "hardhat";
-import { keccak256, stringToHex } from "viem";
+import { encodeAbiParameters, keccak256, stringToHex, zeroAddress } from "viem";
 
 describe("NAVI contracts", async function () {
   const { viem } = await network.create();
@@ -135,5 +135,120 @@ describe("NAVI contracts", async function () {
       assert.equal(seen.has(commitment[1]),false);
       seen.add(commitment[1]);
     }
+  });
+
+  it("supplies and withdraws only the fixed Aave reserve without adapter custody", async function () {
+    const [owner, user] = await viem.getWalletClients();
+    const executor = await viem.deployContract("MockAdapterExecutor");
+    const asset = await viem.deployContract("MockERC20", ["Mock USDC", "mUSDC", zeroAddress]);
+    const pool = await viem.deployContract("MockAavePool", [asset.address]);
+    const aTokenAddress = await pool.read.aToken();
+    const aToken = await viem.getContractAt("MockERC20", aTokenAddress);
+    const adapter = await viem.deployContract("AaveSupplyWithdrawAdapterV2", [
+      executor.address,
+      pool.address,
+      asset.address,
+      aToken.address,
+      1_000n,
+    ]);
+    const strategyId = keccak256(stringToHex("aave-usdc-round-trip"));
+    const amount = 400n;
+    const supplyData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }],
+      [0, amount],
+    );
+    const withdrawData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }],
+      [1, amount],
+    );
+
+    await asset.write.mint([user.account.address, amount]);
+    await asset.write.approve([adapter.address, amount], { account: user.account });
+    await executor.write.execute([adapter.address, user.account.address, supplyData, strategyId], {
+      account: owner.account,
+    });
+    assert.equal(await asset.read.balanceOf([adapter.address]), 0n);
+    assert.equal(await aToken.read.balanceOf([user.account.address]), amount);
+
+    await aToken.write.approve([adapter.address, amount], { account: user.account });
+    await executor.write.execute([adapter.address, user.account.address, withdrawData, strategyId], {
+      account: owner.account,
+    });
+    assert.equal(await aToken.read.balanceOf([adapter.address]), 0n);
+    assert.equal(await aToken.read.balanceOf([user.account.address]), 0n);
+    assert.equal(await asset.read.balanceOf([user.account.address]), amount);
+
+    await assert.rejects(
+      adapter.write.execute([user.account.address, supplyData, strategyId], { account: user.account }),
+    );
+    await assert.rejects(
+      executor.write.execute([adapter.address, user.account.address, supplyData, strategyId], {
+        value: 1n,
+      }),
+    );
+    const overCapData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }],
+      [0, 1_001n],
+    );
+    await assert.rejects(
+      executor.write.execute([adapter.address, user.account.address, overCapData, strategyId]),
+    );
+    const invalidActionData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }],
+      [2, 1n],
+    );
+    await assert.rejects(
+      executor.write.execute([adapter.address, user.account.address, invalidActionData, strategyId]),
+    );
+  });
+
+  it("bounds ERC-4626 deposits and redemptions with user-specified minimum output", async function () {
+    const [owner, user] = await viem.getWalletClients();
+    const executor = await viem.deployContract("MockAdapterExecutor");
+    const asset = await viem.deployContract("MockERC20", ["Mock RWA Cash", "mCASH", zeroAddress]);
+    const vault = await viem.deployContract("MockERC4626Vault", [asset.address]);
+    const adapter = await viem.deployContract("BoundedERC4626AdapterV2", [
+      executor.address,
+      vault.address,
+      asset.address,
+      2_000n,
+      2_000n,
+    ]);
+    const strategyId = keccak256(stringToHex("bounded-rwa-vault-round-trip"));
+    const amount = 500n;
+    const depositData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }, { type: "uint256" }],
+      [0, amount, amount],
+    );
+    const redeemData = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }, { type: "uint256" }],
+      [1, amount, amount],
+    );
+
+    await asset.write.mint([user.account.address, amount]);
+    await asset.write.approve([adapter.address, amount], { account: user.account });
+    await executor.write.execute([adapter.address, user.account.address, depositData, strategyId], {
+      account: owner.account,
+    });
+    assert.equal(await asset.read.balanceOf([adapter.address]), 0n);
+    assert.equal(await vault.read.balanceOf([user.account.address]), amount);
+
+    await vault.write.approve([adapter.address, amount], { account: user.account });
+    await executor.write.execute([adapter.address, user.account.address, redeemData, strategyId], {
+      account: owner.account,
+    });
+    assert.equal(await vault.read.balanceOf([adapter.address]), 0n);
+    assert.equal(await asset.read.balanceOf([user.account.address]), amount);
+
+    const impossibleMinimum = encodeAbiParameters(
+      [{ type: "uint8" }, { type: "uint256" }, { type: "uint256" }],
+      [0, amount, amount + 1n],
+    );
+    await asset.write.approve([adapter.address, amount], { account: user.account });
+    await assert.rejects(
+      executor.write.execute([adapter.address, user.account.address, impossibleMinimum, strategyId]),
+    );
+    assert.equal(await asset.read.balanceOf([user.account.address]), amount);
+    assert.equal(await vault.read.balanceOf([adapter.address]), 0n);
   });
 });
