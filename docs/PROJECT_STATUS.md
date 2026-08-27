@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-22
+Last updated: 2026-08-26
 
 ## Implemented scaffold
 
@@ -12,6 +12,7 @@ Last updated: 2026-08-22
 - adapter-gated transaction preparation contract
 - initial PostgreSQL migration and Solidity contract skeletons
 - unit tests for key safety boundaries
+- responsive institutional dashboard shell with persistent desktop/mobile navigation, accessible wallet states, explicit verified-versus-illustrative data boundaries, draft-policy labelling, and scannable DeFi/RWA opportunity comparison
 
 ## Implemented production foundation
 
