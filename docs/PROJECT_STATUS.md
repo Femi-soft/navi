@@ -49,6 +49,7 @@ Last updated: 2026-08-28
 - Vercel daily cron registered for `/api/cron/monitor`; a separate GitHub Actions schedule calls the same authenticated fail-closed probe every 15 minutes
 - reproducible GitHub validation and Slither security workflow, incident runbook, protocol-selection record and independent-audit scope
 - authoritative deployment requests filed with Stader and X Layer after a fresh chain-1952 probe confirmed all six Stader-published testnet addresses had zero bytecode at block `38528975`
+- authority requests refreshed on 2026-08-28: all six Stader targets still had zero bytecode at block `39474770`, the official X Layer docs commit `be3e9444a50468aee5cf2c79b023df025007b817` still exposed no reversible chain-1952 DeFi/RWA registry, and both evidence updates were posted to the open upstream issues
 - isolated Base Sepolia chain-84532 configuration, dedicated deployer, guarded V2 Ignition module and fail-closed deployment verifier
 - dedicated Base Sepolia deployer funded with `0.005 ETH` on 2026-08-22 and independently confirmed at block `45824878`
 - Base Sepolia Aave preflight refreshed successfully on 2026-08-22 at block `45824909`: target bytecode, pool and aToken implementations, USDC metadata, reserve mapping, and pool relationships all matched the pinned registry commit

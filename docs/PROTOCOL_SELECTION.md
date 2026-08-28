@@ -1,6 +1,6 @@
 # Protocol selection gate
 
-Reviewed: 2026-08-22
+Reviewed: 2026-08-28
 
 Status: X Layer protocol selection remains blocked. The separate Base Sepolia validation lane has a deployed, source-verified Aave adapter, but it remains unapproved behind a paused V2 executor pending independent review. No financial protocol adapter is approved on any network.
 
@@ -21,7 +21,7 @@ A protocol is eligible only when all of the following are independently establis
 
 Stader's official `ethx_oft` repository publishes an X Layer testnet pool and token address set. On 2026-08-17 at block `38528975`, NAVI queried all six published addresses through the configured QuickNode chain-1952 endpoint. The ProxyAdmin, ETHx token, OFT, wrapper, pool and rate receiver all returned empty bytecode. The published deployment is stale and is rejected.
 
-NAVI reported the stale deployment to Stader in [`stader-labs/ethx_oft#13`](https://github.com/stader-labs/ethx_oft/issues/13), requesting either an authoritative redeployment with provenance and audit mapping or an explicit retirement notice.
+NAVI reported the stale deployment to Stader in [`stader-labs/ethx_oft#13`](https://github.com/stader-labs/ethx_oft/issues/13), requesting either an authoritative redeployment with provenance and audit mapping or an explicit retirement notice. On 2026-08-28, NAVI repeated the six-address bytecode probe through the authenticated chain-1952 provider at block `39474770`; all six addresses still returned zero runtime bytes. The refreshed evidence was posted in [issue comment `5454895042`](https://github.com/stader-labs/ethx_oft/issues/13#issuecomment-5454895042). The issue remains open without a protocol-team response.
 
 ### Uniswap
 
@@ -45,7 +45,7 @@ X Layer's official contract table lists testnet WETH at `0xBec7859BC3d0603BeC454
 
 Record the selected protocol, official source URLs, chain ID, targets, runtime bytecode hashes, proxy implementations and admins, assets and decimals, selectors, limits, audit scope and RPC retrieval timestamp here. A reviewer other than the implementer must sign off before adapter implementation or deployment.
 
-An X Layer request for a maintained chain-1952 DeFi/RWA deployment registry is open in [`okx/xlayer-docs#182`](https://github.com/okx/xlayer-docs/issues/182). A protocol-team response or X Layer registry entry is discovery evidence only; every acceptance criterion above must still pass before NAVI implements or approves an adapter.
+An X Layer request for a maintained chain-1952 DeFi/RWA deployment registry is open in [`okx/xlayer-docs#182`](https://github.com/okx/xlayer-docs/issues/182). On 2026-08-28, NAVI searched the official repository at commit `be3e9444a50468aee5cf2c79b023df025007b817`; the available chain-1952 material covered network, RPC, builder-code and oracle integration, but did not identify a maintained reversible lending, staking, vault or tokenized-RWA deployment. The refreshed evidence was posted in [issue comment `5454900253`](https://github.com/okx/xlayer-docs/issues/182#issuecomment-5454900253). The issue remains open without a maintainer response. A protocol-team response or X Layer registry entry is discovery evidence only; every acceptance criterion above must still pass before NAVI implements or approves an adapter.
 
 ## Base Sepolia validation lane
 
