@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { AppShell } from "../../../components/app-shell";
 
 const sections: Record<string, { title: string; description: string; next: string }> = {
-  agent: { title: "Ask NAVI", description: "The agent will interpret your goal and explain verified engine results in plain language.", next: "Connect an LLM provider after tool schemas and prompt-injection tests are in place." },
   opportunities: { title: "Opportunities", description: "Compare normalized DeFi and RWA choices using yield, risk, liquidity, and redemption terms.", next: "Replace labelled sample providers with timestamped live data feeds." },
   strategy: { title: "Strategy", description: "Review deterministic allocations and the impact on yield, risk, liquidity, and concentration.", next: "Persist confirmed intents and generated strategies." },
   portfolio: { title: "Portfolio", description: "A unified view of wallet assets, DeFi positions, and tokenized real-world assets.", next: "Add X Layer readers, price sources, and portfolio snapshots." },

@@ -43,6 +43,15 @@ const monitoringSchema = liveSchema.extend({
   RECEIPT_CONFIRMATIONS: z.coerce.number().int().min(1).max(64).default(2),
 });
 
+const agentSchema = z.object({
+  LLM_PROVIDER: z.enum(["openai", "groq"]).default("groq"),
+  LLM_API_KEY: z.string().min(20).optional(),
+  GROQ_API_KEY: z.string().min(20).optional(),
+  LLM_MODEL: z.string().min(1).optional(),
+  LLM_API_URL: z.string().url().startsWith("https://").optional(),
+  LLM_TIMEOUT_MS: z.coerce.number().int().min(5_000).max(60_000).default(20_000),
+});
+
 type ParsedAuthConfig = z.infer<typeof authSchema>;
 type ParsedLiveConfig = z.infer<typeof liveSchema>;
 
@@ -55,6 +64,13 @@ export type ProductionConfig = ParsedLiveConfig & AuthConfig & {
   rpcUrl: string;
 };
 export type MonitoringConfig = z.infer<typeof monitoringSchema> & ProductionConfig;
+export type AgentConfig = {
+  provider: "openai" | "groq";
+  apiKey: string;
+  model: string;
+  apiUrl: string;
+  timeoutMs: number;
+};
 
 function parseConfig<T>(schema: z.ZodType<T>, env: NodeJS.ProcessEnv, prefix: string): T {
   const parsed = schema.safeParse(env);
@@ -88,6 +104,28 @@ export function readMonitoringConfig(env:NodeJS.ProcessEnv=process.env):Monitori
   if (!rpcUrl) throw new Error(`MONITORING_CONFIG_INVALID:${X_LAYER_NETWORKS[parsed.NAVI_NETWORK].rpcEnvKey}`);
   if (parsed.NAVI_NETWORK === "mainnet" && !parsed.PRICE_API_KEY) throw new Error("MONITORING_CONFIG_INVALID:PRICE_API_KEY");
   return { ...parsed, rpcUrl };
+}
+
+export function readAgentConfig(env: NodeJS.ProcessEnv = process.env): AgentConfig {
+  const parsed = parseConfig(agentSchema, env, "AGENT_CONFIG_INVALID");
+  if (parsed.LLM_PROVIDER === "groq") {
+    if (!parsed.GROQ_API_KEY) throw new Error("AGENT_CONFIG_INVALID:GROQ_API_KEY");
+    return {
+      provider:"groq",
+      apiKey:parsed.GROQ_API_KEY,
+      model:parsed.LLM_MODEL ?? "openai/gpt-oss-20b",
+      apiUrl:parsed.LLM_API_URL ?? "https://api.groq.com/openai/v1/chat/completions",
+      timeoutMs:parsed.LLM_TIMEOUT_MS,
+    };
+  }
+  if (!parsed.LLM_API_KEY) throw new Error("AGENT_CONFIG_INVALID:LLM_API_KEY");
+  return {
+    provider:"openai",
+    apiKey:parsed.LLM_API_KEY,
+    model:parsed.LLM_MODEL ?? "gpt-5.5",
+    apiUrl:parsed.LLM_API_URL ?? "https://api.openai.com/v1/responses",
+    timeoutMs:parsed.LLM_TIMEOUT_MS,
+  };
 }
 
 export function productionReadiness(env: NodeJS.ProcessEnv = process.env) {

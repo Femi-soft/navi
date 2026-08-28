@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-26
+Last updated: 2026-08-28
 
 ## Implemented scaffold
 
@@ -13,6 +13,7 @@ Last updated: 2026-08-26
 - initial PostgreSQL migration and Solidity contract skeletons
 - unit tests for key safety boundaries
 - responsive institutional dashboard shell with persistent desktop/mobile navigation, accessible wallet states, explicit verified-versus-illustrative data boundaries, draft-policy labelling, and scannable DeFi/RWA opportunity comparison
+- Ask NAVI chat workspace with authenticated provider access, sourced context states, responsive conversation UI, and explicit execution lock
 
 ## Implemented production foundation
 
@@ -57,12 +58,17 @@ Last updated: 2026-08-26
 - Base-documented PublicNode fallback explicitly selected for Base Sepolia testnet after two authenticated QuickNode endpoints failed state reads; saved provenance and an extra deployment acknowledgement prevent silent promotion
 - fixed-target Aave V3 USDC supply/withdraw adapter capped at `1000.000000` USDC per action, plus an immutable bounded ERC-4626 vault adapter candidate
 - local adapter tests cover Aave and ERC-4626 entry/exit, executor-only access, caps, minimum output and zero residual adapter custody
+- server-only provider seam with Groq free-tier chat completions for testnet and an OpenAI Responses promotion path; both use structured output validation, non-stored requests, deterministic intent routing, bounded request throttling, and prompt-injection boundary tests
+- agent context is assembled by NAVI: authenticated live portfolio data is labeled verified, opportunity/policy data remains labeled sample, and execution requests fail closed without a model call
+- disposable-wallet live agent harness verifies authenticated provider responses, sourced portfolio context, sample-data boundaries, deterministic execution refusal, and test-record cleanup through `npm run agent:test:live`
+- authenticated Groq agent gate passed end to end on 2026-08-28: server-side Supabase access, disposable-wallet session, provider-backed structured response, verified live portfolio provenance, sample-data boundaries, deterministic execution refusal, and cleanup all succeeded
+- direct OpenAI probe returned `429 insufficient_quota`; Groq `openai/gpt-oss-20b` free tier was selected for the public testnet beta, while the paid OpenAI adapter remains available for later promotion
 
 ## Not implemented / not production-ready
 
 - live token/protocol position readers and a selected production price provider (native-balance/provider seam exists)
 - live DeFi/RWA ingestion and freshness monitoring
-- LLM provider integration and prompt-injection hardening tests
+- durable distributed agent rate limiting, abuse monitoring, adversarial prompt evaluation, and production model/cost observability
 - production integration of provider-backed simulation into an authenticated transaction route
 - production protocol adapters or transaction broadcast
 - configured external alert recipient and verified degraded-state alert delivery

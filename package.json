@@ -30,6 +30,7 @@
     "contracts:prepare:basescan": "node scripts/prepare-basescan-verification.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/safety.test.ts",
+    "agent:test:live": "node scripts/test-agent-session.mjs",
     "validate": "npm run typecheck && npm run test && npm run contracts:check && npm run build"
   },
   "engines": {
