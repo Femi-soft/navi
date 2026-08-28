@@ -14,6 +14,7 @@ Last updated: 2026-08-28
 - unit tests for key safety boundaries
 - responsive institutional dashboard shell with persistent desktop/mobile navigation, accessible wallet states, explicit verified-versus-illustrative data boundaries, draft-policy labelling, and scannable DeFi/RWA opportunity comparison
 - Ask NAVI chat workspace with authenticated provider access, sourced context states, responsive conversation UI, and explicit execution lock
+- activated portfolio, opportunities, strategy, activity, and permissions workspaces: live wallet access and health checks remain provider-backed, while market, strategy, allocation, and editable policy views are explicitly labeled sample or browser-only drafts
 
 ## Implemented production foundation
 
