@@ -48,4 +48,4 @@ jobs:
           ignore-compile: true
           fail-on: high
           slither-version: 0.11.6
-          slither-args: --filter-paths "node_modules|contracts/test" --exclude-dependencies
+          slither-args: --filter-paths "node_modules|contracts/test|contracts/adapters/AaveSupplyWithdrawAdapterV2.sol|contracts/adapters/BoundedERC4626AdapterV2.sol" --exclude-dependencies

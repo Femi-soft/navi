@@ -3,12 +3,13 @@ pragma solidity ^0.8.24;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {INaviAdapterV2} from "../interfaces/INaviAdapterV2.sol";
 import {IAavePool} from "../interfaces/IAavePool.sol";
 
 /// @notice Fixed-reserve Aave canary adapter with per-action, per-user daily, and global daily limits.
-contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2 {
+contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint8 public constant ACTION_SUPPLY = 0;
@@ -62,6 +63,7 @@ contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2 {
     function execute(address user, bytes calldata adapterData, bytes32 strategyId)
         external
         payable
+        nonReentrant
         returns (bytes memory result)
     {
         if (msg.sender != executor) revert OnlyExecutor();
@@ -72,6 +74,7 @@ contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2 {
 
         if (action == ACTION_SUPPLY) {
             uint256 balanceBefore = asset.balanceOf(address(this));
+            // slither-disable-next-line arbitrary-send-erc20 -- executor binds user to its authorized caller.
             asset.safeTransferFrom(user, address(this), amount);
             asset.forceApprove(address(pool), amount);
             pool.supply(address(asset), amount, user, 0);
@@ -79,6 +82,7 @@ contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2 {
             if (asset.balanceOf(address(this)) != balanceBefore) revert UnexpectedProtocolResult();
         } else if (action == ACTION_WITHDRAW) {
             uint256 balanceBefore = aToken.balanceOf(address(this));
+            // slither-disable-next-line arbitrary-send-erc20 -- executor binds user to its authorized caller.
             aToken.safeTransferFrom(user, address(this), amount);
             uint256 amountWithdrawn = pool.withdraw(address(asset), amount, user);
             if (amountWithdrawn != amount || aToken.balanceOf(address(this)) != balanceBefore) revert UnexpectedProtocolResult();

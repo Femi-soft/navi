@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 ## Implemented scaffold
 
@@ -16,6 +16,7 @@ Last updated: 2026-08-28
 - Ask NAVI chat workspace with authenticated provider access, sourced context states, responsive conversation UI, and explicit execution lock
 - activated portfolio, opportunities, strategy, activity, and permissions workspaces: live wallet access and health checks remain provider-backed, while market, strategy, allocation, and editable policy views are explicitly labeled sample or browser-only drafts
 - Base Sepolia V3 Day One canary foundation: EIP-712 authorized simulation evidence, canary-user allowlisting, fixed Aave USDC supply/withdraw adapter, `10.000000` USDC action cap, daily user/global limits, separate deployment tooling, fail-closed policy and provider-simulation preparation routes, and non-broadcasting wallet network controls; V3 remains undeployed and disabled
+- security workflow run `33235516559` passed validation, dependency audit, and the commit-bound manifest for V3 commit `fbeeea7`; its Slither job identified `arbitrary-send-erc20` as the only high detector, after which the V3 adapter gained a local reentrancy guard and narrowly documented executor/user-binding suppressions pending a clean CI rerun
 
 ## Implemented production foundation
 
@@ -76,7 +77,7 @@ Last updated: 2026-08-28
 - production protocol adapters or transaction broadcast
 - configured external alert recipient and verified degraded-state alert delivery
 - reviewed testnet protocol adapter, independent audits, incident controls, OKLink publication, and mainnet validation
-- independent acceptance or remediation of the Base Sepolia Slither report: 8 high, 3 medium, 2 low and 1 informational results remain open; internal triage is not audit approval
+- independent acceptance of the historical Base Sepolia V2 Slither findings and the V3 canary remediation; automated CI and internal triage are not independent audit approval
 - authenticated Base Sepolia RPC and independent adapter review
 - resolve the Base Sepolia provider outage observed on 2026-08-19: chain metadata succeeded, but authenticated balance, bytecode and contract-call reads returned HTTP `503`
 - an authoritative investable Centrifuge test vault with asset, eligibility, liquidity and exit evidence

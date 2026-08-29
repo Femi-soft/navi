@@ -259,6 +259,7 @@ describe("NAVI contracts", async function () {
 
     await asset.write.mint([user.account.address, 11n]);
     await asset.write.approve([adapter.address, 11n], { account:user.account });
+    await assert.rejects(adapter.write.execute([user.account.address, supply(1n), strategyId], { account:user.account }));
     await executor.write.execute([adapter.address, user.account.address, supply(6n), strategyId], { account:owner.account });
     await aToken.write.approve([adapter.address, 4n], { account:user.account });
     await executor.write.execute([adapter.address, user.account.address, withdraw(4n), strategyId], { account:owner.account });

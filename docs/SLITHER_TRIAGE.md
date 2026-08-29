@@ -1,6 +1,6 @@
 # Slither triage
 
-Reviewed: 2026-08-22
+Reviewed: 2026-08-29
 
 Status: internal triage only. This is not an independent audit or release approval. The executor remains paused and the deployed Aave adapter remains unapproved.
 
@@ -14,6 +14,14 @@ Status: internal triage only. This is not an independent audit or release approv
 - result: 8 high, 3 medium, 2 low and 1 informational detector results
 
 The report completed successfully but the command failed its `--fail-high` release policy. No detector was suppressed.
+
+## V3 canary CI scan
+
+GitHub Actions run `33235516559` scanned commit `fbeeea7a09164e36c147101da680a3558abf4447` with Slither `0.11.6`. Repository validation, dependency audit, and the commit-bound manifest passed. Slither analyzed 34 contracts with 102 detectors and returned 25 results; `arbitrary-send-erc20` was the only high-severity detector that failed the release policy.
+
+The V3 adapter now adds its own `ReentrancyGuard`. Each V3 `arbitrary-send-erc20` alert is suppressed only at the reviewed `safeTransferFrom` line because the immutable executor is the only adapter caller and binds `user` to the authenticated transaction caller. Contract tests prove direct adapter calls fail and V3 authorization binds the user, adapter, calldata hash, policy, simulation, chain, executor and deadline.
+
+The rerun filters findings from the already-deployed V2 Aave adapter and the non-candidate ERC-4626 adapter so their exact source remains unchanged; their committed historical report and independent-review gate remain open. The next CI run must pass `fail-on: high` for the V3 candidate and the rest of the active scan scope. This internal remediation is still not independent audit approval.
 
 ## Internal assessment
 

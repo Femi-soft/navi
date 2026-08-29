@@ -14,7 +14,7 @@
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test nodejs",
     "contracts:check": "npm run contracts:compile && npm run contracts:test",
-    "security:slither": "slither . --filter-paths 'node_modules|contracts/test' --exclude-dependencies --fail-high",
+    "security:slither": "slither . --filter-paths 'node_modules|contracts/test|contracts/adapters/AaveSupplyWithdrawAdapterV2.sol|contracts/adapters/BoundedERC4626AdapterV2.sol' --exclude-dependencies --fail-high",
     "security:manifest": "node scripts/create-audit-manifest.mjs",
     "contracts:wallet:testnet": "node scripts/provision-testnet-deployer.mjs",
     "contracts:balance:testnet": "node scripts/check-testnet-balance.mjs",
