@@ -23,6 +23,8 @@ The V3 adapter now adds its own `ReentrancyGuard`. Each V3 `arbitrary-send-erc20
 
 The rerun filters findings from the already-deployed V2 Aave adapter and the non-candidate ERC-4626 adapter so their exact source remains unchanged; their committed historical report and independent-review gate remain open. The next CI run must pass `fail-on: high` for the V3 candidate and the rest of the active scan scope. This internal remediation is still not independent audit approval.
 
+GitHub Actions run `33235956578` confirmed that all `arbitrary-send-erc20` findings were removed from the active scope. It returned nine findings and failed only because `reentrancy-balance` is classified High/Medium-confidence. Slither's pinned detector recommendation is to use a reentrancy guard; V3 already does so. A function-scoped `reentrancy-balance` suppression now documents that exact remediation without suppressing other reentrancy detectors or lowering `fail-on: high`.
+
 ## Internal assessment
 
 ### Arbitrary `transferFrom` - high

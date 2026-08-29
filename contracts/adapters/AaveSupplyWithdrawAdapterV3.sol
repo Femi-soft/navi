@@ -60,6 +60,8 @@ contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2, ReentrancyGuard {
         maxGlobalDailyAmount = globalDailyAmountCap;
     }
 
+    // The local guard and executor-only entry prevent callbacks from reusing pre-call balance snapshots.
+    // slither-disable-start reentrancy-balance
     function execute(address user, bytes calldata adapterData, bytes32 strategyId)
         external
         payable
@@ -93,6 +95,7 @@ contract AaveSupplyWithdrawAdapterV3 is INaviAdapterV2, ReentrancyGuard {
         emit AaveActionExecuted(user, strategyId, action, amount);
         return abi.encode(action, amount);
     }
+    // slither-disable-end reentrancy-balance
 
     function _consumeLimits(address user, uint256 amount) private {
         uint256 currentDay = block.timestamp / 1 days;
