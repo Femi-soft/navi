@@ -25,6 +25,8 @@ The rerun filters findings from the already-deployed V2 Aave adapter and the non
 
 GitHub Actions run `33235956578` confirmed that all `arbitrary-send-erc20` findings were removed from the active scope. It returned nine findings and failed only because `reentrancy-balance` is classified High/Medium-confidence. Slither's pinned detector recommendation is to use a reentrancy guard; V3 already does so. A function-scoped `reentrancy-balance` suppression now documents that exact remediation without suppressing other reentrancy detectors or lowering `fail-on: high`.
 
+GitHub Actions run `33236194875` passed both jobs for commit `fd856d054e03c2d685b75bfccd5b80e797c6b682`. Slither analyzed 34 contracts with 102 detectors and reported seven lower-severity results across `incorrect-equality`, `locked-ether`, `timestamp`, `assembly`, `missing-inheritance`, and `naming-convention`. There was no unsuppressed high finding, and the action retained `fail-on: high`.
+
 ## Internal assessment
 
 ### Arbitrary `transferFrom` - high

@@ -16,7 +16,7 @@ Last updated: 2026-08-29
 - Ask NAVI chat workspace with authenticated provider access, sourced context states, responsive conversation UI, and explicit execution lock
 - activated portfolio, opportunities, strategy, activity, and permissions workspaces: live wallet access and health checks remain provider-backed, while market, strategy, allocation, and editable policy views are explicitly labeled sample or browser-only drafts
 - Base Sepolia V3 Day One canary foundation: EIP-712 authorized simulation evidence, canary-user allowlisting, fixed Aave USDC supply/withdraw adapter, `10.000000` USDC action cap, daily user/global limits, separate deployment tooling, fail-closed policy and provider-simulation preparation routes, and non-broadcasting wallet network controls; V3 remains undeployed and disabled
-- security workflow runs `33235516559` and `33235956578` passed validation, dependency audit, and commit-bound manifests; remediation removed all active-scope `arbitrary-send-erc20` findings, while the remaining High/Medium-confidence `reentrancy-balance` warning is addressed by the V3 adapter's local guard and a detector-specific documented suppression pending a clean CI rerun
+- security workflow run `33236194875` passed validation, dependency audit, commit-bound manifest, and Slither `0.11.6` with `fail-on: high`; the V3 active scan has no unsuppressed high finding, while seven lower-severity results remain documented and independent review is still required
 
 ## Implemented production foundation
 
