@@ -8,6 +8,7 @@ tsconfig.tsbuildinfo
 audit-manifest.json
 .security-output/
 .tmp-basescan-check/
+.base-sepolia-canary-parameters.json
 ignition/deployments/chain-31337/
 .env
 .env.local

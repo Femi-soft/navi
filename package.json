@@ -25,6 +25,7 @@
     "contracts:balance:base-sepolia": "node scripts/check-base-sepolia-balance.mjs",
     "contracts:protocol:base-sepolia": "node scripts/verify-base-sepolia-protocol.mjs",
     "contracts:deploy:base-sepolia": "powershell -ExecutionPolicy Bypass -File scripts/deploy-base-sepolia.ps1 -AcknowledgeTestnetOnly",
+    "contracts:deploy:base-sepolia:canary": "powershell -ExecutionPolicy Bypass -File scripts/deploy-base-sepolia-canary.ps1 -AcknowledgeUnauditedTestnetOnly",
     "contracts:verify:base-sepolia": "node scripts/verify-base-sepolia-deployment.mjs",
     "contracts:publish:base-sepolia": "powershell -ExecutionPolicy Bypass -File scripts/publish-base-sepolia-sources.ps1 -AcknowledgeTestnetOnly",
     "contracts:prepare:basescan": "node scripts/prepare-basescan-verification.mjs",

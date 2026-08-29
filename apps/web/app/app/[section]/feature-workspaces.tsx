@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Check, CircleAlert, ExternalLink, LockKeyhole, RefreshCw, RotateCcw, Search, ShieldCheck } from "lucide-react";
+import { Activity, Check, CircleAlert, ExternalLink, LockKeyhole, Network, RefreshCw, RotateCcw, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -19,6 +19,13 @@ type Health = {
   status: string; mode: string; networkLabel: string; executionEnabled: boolean; productionReady: boolean;
   rpc: { verified: boolean; chainId: number | null; latestBlockAgeSeconds: number | null; latencyMs: number | null };
 };
+
+type CanaryStatus = {
+  enabled: boolean; configured: boolean; chainId: number; networkLabel: string; protocol: string; asset: string;
+  maxActionUsdc: string; maxUserDailyUsdc: string; maxGlobalDailyUsdc: string; source: string; retrievedAt: string;
+};
+
+type EthereumProvider = { request(input:{ method:string; params?:unknown[] }):Promise<unknown> };
 
 export function OpportunityExplorer({ opportunities }: { opportunities: Opportunity[] }) {
   const [market, setMarket] = useState<"ALL" | "DEFI" | "RWA">("ALL");
@@ -114,4 +121,64 @@ export function PolicyWorkspace({ initialPolicy }: { initialPolicy: PolicyDraft 
       </aside>
     </div>
   </>;
+}
+
+export function CanaryExecutionPanel() {
+  const [status, setStatus] = useState<CanaryStatus | null>(null);
+  const [action, setAction] = useState<"SUPPLY" | "WITHDRAW">("SUPPLY");
+  const [amount, setAmount] = useState("1.000000");
+  const [message, setMessage] = useState("Checking the Base Sepolia canary gate...");
+  const [busy, setBusy] = useState(false);
+  const baseChainHex = "0x14a34";
+  const walletRpc = process.env.NEXT_PUBLIC_BASE_SEPOLIA_WALLET_RPC_URL ?? "https://sepolia.base.org";
+
+  useEffect(() => {
+    void fetch("/api/execution/canary/status", { cache:"no-store" })
+      .then(async (response) => response.json() as Promise<CanaryStatus>)
+      .then((result) => { setStatus(result); setMessage(result.enabled ? "Canary configuration is available. Authenticate before requesting a simulation." : "Day One controls are installed. Onchain activation remains locked."); })
+      .catch(() => setMessage("Canary status is temporarily unavailable."));
+  }, []);
+
+  function provider() { return (window as typeof window & { ethereum?:EthereumProvider }).ethereum; }
+
+  async function switchNetwork() {
+    const wallet = provider();
+    if (!wallet) { setMessage("Open an EVM wallet to switch networks."); return; }
+    setBusy(true);
+    try {
+      await wallet.request({ method:"eth_requestAccounts" });
+      try { await wallet.request({ method:"wallet_switchEthereumChain", params:[{ chainId:baseChainHex }] }); }
+      catch (error) {
+        if ((error as { code?:number }).code !== 4902) throw error;
+        await wallet.request({ method:"wallet_addEthereumChain", params:[{ chainId:baseChainHex, chainName:"Base Sepolia", nativeCurrency:{ name:"ETH", symbol:"ETH", decimals:18 }, rpcUrls:[walletRpc], blockExplorerUrls:["https://sepolia-explorer.base.org"] }] });
+      }
+      setMessage("Wallet switched to Base Sepolia. NAVI has not requested a transaction.");
+    } catch { setMessage("The wallet did not switch to Base Sepolia."); }
+    finally { setBusy(false); }
+  }
+
+  async function checkReadiness() {
+    setBusy(true);
+    try {
+      const response = await fetch("/api/execution/canary/prepare", { method:"POST", headers:{ "content-type":"application/json" }, body:JSON.stringify({ action, amount }) });
+      const body = await response.json() as { status?:string; prerequisite?:string; code?:string; message?:string };
+      if (!response.ok) { setMessage(body.message ?? "The canary request failed closed."); return; }
+      setMessage(body.status === "SIMULATED" ? "Provider simulation passed. Wallet broadcast remains locked for Day One." : `Prerequisite required: ${body.prerequisite ?? "policy or token approval"}. No transaction was sent.`);
+    } catch { setMessage("Canary readiness could not be checked."); }
+    finally { setBusy(false); }
+  }
+
+  return <section className="canary-panel">
+    <div className="panel-heading"><div><p className="eyebrow">Base Sepolia lane</p><h2>Execution canary</h2></div><span className={status?.enabled ? "live-badge" : "draft-badge"}>{status?.enabled ? "Configured" : "Day One locked"}</span></div>
+    <p className="panel-copy">Fixed Aave V3 USDC supply and exact withdrawal only. EIP-712 simulation authorization, canary-user allowlisting, and contract-level daily limits apply.</p>
+    <div className="canary-limits"><span><small>Per action</small><strong>{status?.maxActionUsdc ?? "10.000000"} USDC</strong></span><span><small>User / day</small><strong>{status?.maxUserDailyUsdc ?? "20.000000"} USDC</strong></span><span><small>Global / day</small><strong>{status?.maxGlobalDailyUsdc ?? "100.000000"} USDC</strong></span></div>
+    <div className="canary-controls">
+      <div className="segmented" aria-label="Canary action"><button type="button" className={action === "SUPPLY" ? "active" : ""} onClick={() => setAction("SUPPLY")}>Supply</button><button type="button" className={action === "WITHDRAW" ? "active" : ""} onClick={() => setAction("WITHDRAW")}>Withdraw</button></div>
+      <label><span>Amount (USDC)</span><input value={amount} inputMode="decimal" onChange={(event) => { if (/^\d*(?:\.\d{0,6})?$/.test(event.target.value)) setAmount(event.target.value); }} /></label>
+      <button type="button" className="secondary" onClick={() => void switchNetwork()} disabled={busy}><Network aria-hidden="true" size={16} /> Base Sepolia</button>
+      <button type="button" onClick={() => void checkReadiness()} disabled={busy || !amount}>Check readiness</button>
+    </div>
+    <div className="canary-message" role="status"><LockKeyhole aria-hidden="true" size={16} /><span>{message}</span></div>
+    <p className="table-source">Source: {status?.source ?? "NAVI_CANARY_CONFIG"} / Retrieved {status?.retrievedAt ? new Date(status.retrievedAt).toLocaleString() : "pending"}</p>
+  </section>;
 }

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "../../../components/app-shell";
 import { buildDemoDashboard } from "../../../lib/demo";
 import { WalletPanel } from "../overview/wallet-panel";
-import { ActivityWorkspace, OpportunityExplorer, PolicyWorkspace } from "./feature-workspaces";
+import { ActivityWorkspace, CanaryExecutionPanel, OpportunityExplorer, PolicyWorkspace } from "./feature-workspaces";
 
 const validSections = new Set(["portfolio", "opportunities", "strategy", "activity", "policy"]);
 
@@ -86,6 +86,7 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
             <Link className="text-command" href="/app/agent">Discuss with Ask NAVI <ArrowRight aria-hidden="true" size={15} /></Link>
           </article>
         </div>
+        <CanaryExecutionPanel />
       </> : null}
 
       {section === "activity" ? <>

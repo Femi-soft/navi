@@ -15,6 +15,7 @@ Last updated: 2026-08-28
 - responsive institutional dashboard shell with persistent desktop/mobile navigation, accessible wallet states, explicit verified-versus-illustrative data boundaries, draft-policy labelling, and scannable DeFi/RWA opportunity comparison
 - Ask NAVI chat workspace with authenticated provider access, sourced context states, responsive conversation UI, and explicit execution lock
 - activated portfolio, opportunities, strategy, activity, and permissions workspaces: live wallet access and health checks remain provider-backed, while market, strategy, allocation, and editable policy views are explicitly labeled sample or browser-only drafts
+- Base Sepolia V3 Day One canary foundation: EIP-712 authorized simulation evidence, canary-user allowlisting, fixed Aave USDC supply/withdraw adapter, `10.000000` USDC action cap, daily user/global limits, separate deployment tooling, fail-closed policy and provider-simulation preparation routes, and non-broadcasting wallet network controls; V3 remains undeployed and disabled
 
 ## Implemented production foundation
 

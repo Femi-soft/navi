@@ -52,6 +52,16 @@ const agentSchema = z.object({
   LLM_TIMEOUT_MS: z.coerce.number().int().min(5_000).max(60_000).default(20_000),
 });
 
+const canarySchema = z.object({
+  CANARY_EXECUTION_ENABLED: z.enum(["true", "false"]).default("false"),
+  BASE_SEPOLIA_RPC_URL: z.string().url().startsWith("https://").optional(),
+  BASE_SEPOLIA_SIMULATION_SIGNER_PRIVATE_KEY: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
+  BASE_SEPOLIA_CANARY_POLICY_MANAGER_ADDRESS: z.string().regex(/^0x[0-9a-fA-F]{40}$/).optional(),
+  BASE_SEPOLIA_CANARY_EXECUTOR_ADDRESS: z.string().regex(/^0x[0-9a-fA-F]{40}$/).optional(),
+  BASE_SEPOLIA_CANARY_AAVE_ADAPTER_ADDRESS: z.string().regex(/^0x[0-9a-fA-F]{40}$/).optional(),
+  CANARY_ALLOWED_WALLETS: z.string().optional(),
+});
+
 type ParsedAuthConfig = z.infer<typeof authSchema>;
 type ParsedLiveConfig = z.infer<typeof liveSchema>;
 
@@ -70,6 +80,17 @@ export type AgentConfig = {
   model: string;
   apiUrl: string;
   timeoutMs: number;
+};
+export type CanaryConfig = {
+  enabled: boolean;
+  chainId: 84532;
+  networkLabel: "Base Sepolia";
+  rpcUrl?: string;
+  simulationSignerPrivateKey?: `0x${string}`;
+  policyManagerAddress?: `0x${string}`;
+  executorAddress?: `0x${string}`;
+  adapterAddress?: `0x${string}`;
+  allowedWallets: readonly string[];
 };
 
 function parseConfig<T>(schema: z.ZodType<T>, env: NodeJS.ProcessEnv, prefix: string): T {
@@ -126,6 +147,24 @@ export function readAgentConfig(env: NodeJS.ProcessEnv = process.env): AgentConf
     apiUrl:parsed.LLM_API_URL ?? "https://api.openai.com/v1/responses",
     timeoutMs:parsed.LLM_TIMEOUT_MS,
   };
+}
+
+export function readCanaryConfig(env: NodeJS.ProcessEnv = process.env): CanaryConfig {
+  const parsed = parseConfig(canarySchema, env, "CANARY_CONFIG_INVALID");
+  const allowedWallets = (parsed.CANARY_ALLOWED_WALLETS ?? "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean);
+  if (allowedWallets.some((value) => !/^0x[0-9a-f]{40}$/.test(value))) throw new Error("CANARY_CONFIG_INVALID:CANARY_ALLOWED_WALLETS");
+  const base = { enabled:parsed.CANARY_EXECUTION_ENABLED === "true", chainId:84532 as const, networkLabel:"Base Sepolia" as const, allowedWallets };
+  if (!base.enabled) return base;
+  const required = {
+    rpcUrl:parsed.BASE_SEPOLIA_RPC_URL,
+    simulationSignerPrivateKey:parsed.BASE_SEPOLIA_SIMULATION_SIGNER_PRIVATE_KEY,
+    policyManagerAddress:parsed.BASE_SEPOLIA_CANARY_POLICY_MANAGER_ADDRESS,
+    executorAddress:parsed.BASE_SEPOLIA_CANARY_EXECUTOR_ADDRESS,
+    adapterAddress:parsed.BASE_SEPOLIA_CANARY_AAVE_ADAPTER_ADDRESS,
+  };
+  const missing = Object.entries(required).filter(([, value]) => !value).map(([key]) => key);
+  if (missing.length || allowedWallets.length === 0) throw new Error(`CANARY_CONFIG_INVALID:${[...missing, ...(allowedWallets.length ? [] : ["allowedWallets"])].join(",")}`);
+  return { ...base, ...required } as CanaryConfig;
 }
 
 export function productionReadiness(env: NodeJS.ProcessEnv = process.env) {

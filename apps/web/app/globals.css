@@ -258,6 +258,17 @@ button.prompt-chip:hover:not(:disabled) { border-color: #4a5967; background: var
 .policy-preview > svg { color: var(--blue); }
 .policy-preview h2 { margin: 5px 0 14px; }
 .policy-preview .rules { margin-top: 0; }
+.canary-panel { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.canary-limits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 16px 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-inset); }
+.canary-limits span { min-width: 0; display: grid; gap: 3px; padding: 12px 14px; border-right: 1px solid var(--line); }
+.canary-limits span:last-child { border-right: 0; }
+.canary-limits small { color: var(--subtle); }
+.canary-limits strong { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.canary-controls { display: grid; grid-template-columns: auto minmax(170px, 1fr) auto auto; align-items: end; gap: 10px; }
+.canary-controls > label { min-width: 0; display: grid; gap: 6px; color: var(--muted); font-size: 11px; }
+.canary-controls input { min-width: 0; width: 100%; height: 44px; border: 1px solid var(--line-strong); border-radius: 5px; padding: 9px 11px; background: var(--surface); color: var(--text); font: inherit; }
+.canary-message { min-height: 42px; display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 11px; border: 1px solid #4d4027; border-radius: 5px; background: var(--amber-dark); color: #d7c9a7; }
+.canary-message svg { flex: 0 0 auto; color: var(--amber); }
 
 @media (max-width: 1160px) {
   .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -291,6 +302,7 @@ button.prompt-chip:hover:not(:disabled) { border-color: #4a5967; background: var
   .context-item:nth-of-type(4) { border-right: 0; }
   .inspection-band, .policy-workspace { grid-template-columns: minmax(0, 1fr); }
   .activity-grid { grid-template-columns: minmax(0, 1fr); }
+  .canary-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
@@ -331,6 +343,10 @@ button.prompt-chip:hover:not(:disabled) { border-color: #4a5967; background: var
   .inspection-band dl, .field-grid { grid-template-columns: minmax(0, 1fr); }
   .inspection-band dl div { padding: 9px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .policy-editor, .policy-preview { padding: 16px; }
+  .canary-limits, .canary-controls { grid-template-columns: minmax(0, 1fr); }
+  .canary-limits span { border-right: 0; border-bottom: 1px solid var(--line); }
+  .canary-limits span:last-child { border-bottom: 0; }
+  .canary-controls button, .canary-controls .segmented { width: 100%; }
 }
 
 @media (max-width: 380px) {

@@ -1,15 +1,19 @@
 # Independent security audit scope
 
-Prepared: 2026-08-22
+Prepared: 2026-08-28
 
 Status: audit evidence package in progress. The Base Sepolia V2 contracts and Aave adapter are deployed with exact source matches, but the executor remains paused and the adapter remains unapproved. This document and the internal Slither triage are not an audit report and do not represent independent approval.
+
+The V3 canary candidate is implemented but not deployed. It adds an EIP-712 authorized simulation signer, explicit canary-user allowlisting, a `10.000000` USDC action cap, `20.000000` USDC per-user daily cap, and `100.000000` USDC global daily cap. Runtime preparation remains disabled by default.
 
 ## Candidate scope
 
 - `contracts/NaviExecutorV2.sol`
+- `contracts/NaviExecutorV3.sol`
 - `contracts/NaviPolicyManagerV2.sol`
 - `contracts/interfaces/INaviAdapterV2.sol`
 - `contracts/adapters/AaveSupplyWithdrawAdapterV2.sol`
+- `contracts/adapters/AaveSupplyWithdrawAdapterV3.sol`
 - `contracts/adapters/BoundedERC4626AdapterV2.sol`
 - `contracts/interfaces/IAavePool.sol`
 - `packages/simulation/src/index.ts` attestation, binding, freshness and provider evidence
@@ -24,6 +28,8 @@ The deployed V1 contracts are excluded from promotion. They remain paused and ar
 - every adapter accepts calls only from its immutable executor
 - user identity, strategy, exact transaction, current policy commitment, simulation hash, chain, block and expiry remain bound
 - simulation hashes cannot be replayed for the same user
+- V3 execution authorization recovers only the configured signer and binds user, chain, executor, adapter, calldata hash, strategy, simulation, current policy and deadline
+- only explicitly allowlisted canary users can reach V3 execution, and adapter-enforced action/user/global limits cannot be bypassed by repeated API calls
 - expired, stale-policy, wrong-network, altered-target, altered-calldata and altered-value actions fail closed
 - token/native value cannot exceed adapter-specific limits or flow to an unapproved target
 - only independently confirmed canonical receipts finalize financial state

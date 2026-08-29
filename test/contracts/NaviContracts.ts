@@ -124,6 +124,47 @@ describe("NAVI contracts", async function () {
     await assert.rejects(adapter.write.execute([user.account.address,"0x",strategyId],{account:user.account}));
   });
 
+  it("requires an allowed canary user and NAVI-signed V3 execution evidence", async function () {
+    const [owner, signer, user, outsider] = await viem.getWalletClients();
+    const publicClient = await viem.getPublicClient();
+    const policy = await viem.deployContract("NaviPolicyManagerV2");
+    const executor = await viem.deployContract("NaviExecutorV3", [owner.account.address, policy.address, signer.account.address]);
+    const adapter = await viem.deployContract("MockNaviAdapterV2", [executor.address]);
+    const documentHash = keccak256(stringToHex("base-sepolia-canary-policy-v1"));
+    await policy.write.commit([documentHash], { account:user.account });
+    const commitment = await policy.read.commitments([user.account.address]);
+    await executor.write.setAdapter([adapter.address, true]);
+    await executor.write.setCanaryUser([user.account.address, true]);
+    await executor.write.unpause();
+
+    const adapterData = stringToHex("fixed-aave-usdc-supply");
+    const evidence = {
+      strategyId:keccak256(stringToHex("canary-strategy")),
+      simulationHash:keccak256(stringToHex("provider-simulation-v3")),
+      policyCommitmentHash:commitment[1],
+      policyVersion:commitment[2],
+      deadline:BigInt(Math.floor(Date.now() / 1_000) + 300),
+    };
+    const authorization = await signer.signTypedData({
+      account:signer.account,
+      domain:{ name:"NAVI Executor", version:"3", chainId:await publicClient.getChainId(), verifyingContract:executor.address },
+      primaryType:"ExecutionAuthorization",
+      types:{ ExecutionAuthorization:[
+        { name:"user", type:"address" }, { name:"adapter", type:"address" }, { name:"adapterDataHash", type:"bytes32" },
+        { name:"strategyId", type:"bytes32" }, { name:"simulationHash", type:"bytes32" },
+        { name:"policyCommitmentHash", type:"bytes32" }, { name:"policyVersion", type:"uint256" }, { name:"deadline", type:"uint256" },
+      ] },
+      message:{ user:user.account.address, adapter:adapter.address, adapterDataHash:keccak256(adapterData), ...evidence },
+    });
+
+    await assert.rejects(executor.write.execute([adapter.address, adapterData, evidence, authorization], { account:outsider.account }));
+    await assert.rejects(executor.write.execute([adapter.address, stringToHex("tampered"), evidence, authorization], { account:user.account }));
+    await executor.write.execute([adapter.address, adapterData, evidence, authorization], { account:user.account });
+    assert.equal(await executor.read.consumedSimulations([user.account.address, evidence.simulationHash]), true);
+    assert.equal((await adapter.read.lastUser()).toLowerCase(), user.account.address.toLowerCase());
+    await assert.rejects(executor.write.execute([adapter.address, adapterData, evidence, authorization], { account:user.account }));
+  });
+
   it("keeps domain-separated V2 policy commitments unique across sequential versions", async function () {
     const [,user]=await viem.getWalletClients();
     const policy=await viem.deployContract("NaviPolicyManagerV2");
@@ -200,6 +241,31 @@ describe("NAVI contracts", async function () {
     await assert.rejects(
       executor.write.execute([adapter.address, user.account.address, invalidActionData, strategyId]),
     );
+  });
+
+  it("enforces V3 Aave action and daily canary limits", async function () {
+    const [owner, user] = await viem.getWalletClients();
+    const executor = await viem.deployContract("MockAdapterExecutor");
+    const asset = await viem.deployContract("MockERC20", ["Mock USDC", "mUSDC", zeroAddress]);
+    const pool = await viem.deployContract("MockAavePool", [asset.address]);
+    const aTokenAddress = await pool.read.aToken();
+    const aToken = await viem.getContractAt("MockERC20", aTokenAddress);
+    const adapter = await viem.deployContract("AaveSupplyWithdrawAdapterV3", [
+      executor.address, pool.address, asset.address, aToken.address, 6n, 10n, 20n,
+    ]);
+    const strategyId = keccak256(stringToHex("limited-aave-canary"));
+    const supply = (amount: bigint) => encodeAbiParameters([{ type:"uint8" }, { type:"uint256" }], [0, amount]);
+    const withdraw = (amount: bigint) => encodeAbiParameters([{ type:"uint8" }, { type:"uint256" }], [1, amount]);
+
+    await asset.write.mint([user.account.address, 11n]);
+    await asset.write.approve([adapter.address, 11n], { account:user.account });
+    await executor.write.execute([adapter.address, user.account.address, supply(6n), strategyId], { account:owner.account });
+    await aToken.write.approve([adapter.address, 4n], { account:user.account });
+    await executor.write.execute([adapter.address, user.account.address, withdraw(4n), strategyId], { account:owner.account });
+    assert.equal(await asset.read.balanceOf([adapter.address]), 0n);
+    assert.equal(await aToken.read.balanceOf([adapter.address]), 0n);
+    await assert.rejects(executor.write.execute([adapter.address, user.account.address, supply(1n), strategyId], { account:owner.account }));
+    await assert.rejects(executor.write.execute([adapter.address, user.account.address, supply(7n), strategyId], { account:owner.account }));
   });
 
   it("bounds ERC-4626 deposits and redemptions with user-specified minimum output", async function () {

@@ -10,11 +10,12 @@ import type { AuthStore, NonceRecord } from "@navi/database";
 import { issueWalletChallenge, verifyWalletChallenge } from "../apps/web/lib/server/auth.ts";
 import { privateKeyToAccount } from "viem/accounts";
 import { keccak256, stringToHex } from "viem";
-import { productionReadiness, readProductionConfig } from "../apps/web/lib/server/config.ts";
+import { productionReadiness, readCanaryConfig, readProductionConfig } from "../apps/web/lib/server/config.ts";
 import { parseCoinGeckoOkbPrice } from "@navi/portfolio";
 import { evaluateExecutorState } from "../apps/web/lib/server/monitoring.ts";
 import { buildAgentInput, buildAgentInstructions, classifyIntent, executionLockedAnswer, parseAgentAnswer } from "@navi/ai";
 import { requestAgentAnswer } from "../apps/web/lib/server/agent.ts";
+import { canaryPolicyDocument, prepareCanaryPolicyTransaction } from "../apps/web/lib/server/canary.ts";
 
 class MemoryAuthStore implements AuthStore {
   nonces = new Map<string, NonceRecord & { consumed:boolean }>();
@@ -250,6 +251,38 @@ describe("NAVI safety boundaries", () => {
       sessionAddress:"0x71000000000000000000000000000000000042af",
       fetcher:async () => new Response(JSON.stringify({ error:{ code:"insufficient_quota", message:"sensitive provider detail" } }), { status:429 }),
     }), (error: unknown) => error instanceof Error && error.message === "LLM_PROVIDER_ERROR:groq:429:insufficient_quota");
+  });
+
+  it("keeps the Base Sepolia execution canary disabled unless every release value is present", () => {
+    assert.equal(readCanaryConfig({ CANARY_EXECUTION_ENABLED:"false" }).enabled, false);
+    assert.throws(() => readCanaryConfig({ CANARY_EXECUTION_ENABLED:"true" }), /CANARY_CONFIG_INVALID/);
+    assert.throws(() => readCanaryConfig({ CANARY_EXECUTION_ENABLED:"true", CANARY_ALLOWED_WALLETS:"not-an-address" }), /CANARY_CONFIG_INVALID/);
+  });
+
+  it("binds canary policy preparation to fixed Base Sepolia contracts and decimal-string limits", () => {
+    const user="0x71000000000000000000000000000000000042af" as const;
+    const config=readCanaryConfig({
+      CANARY_EXECUTION_ENABLED:"true",
+      BASE_SEPOLIA_RPC_URL:"https://provider.example/base-sepolia",
+      BASE_SEPOLIA_SIMULATION_SIGNER_PRIVATE_KEY:`0x${"11".repeat(32)}`,
+      BASE_SEPOLIA_CANARY_POLICY_MANAGER_ADDRESS:"0x1000000000000000000000000000000000000001",
+      BASE_SEPOLIA_CANARY_EXECUTOR_ADDRESS:"0x2000000000000000000000000000000000000002",
+      BASE_SEPOLIA_CANARY_AAVE_ADAPTER_ADDRESS:"0x3000000000000000000000000000000000000003",
+      CANARY_ALLOWED_WALLETS:user,
+    });
+    const first=canaryPolicyDocument(config,user);
+    const second=canaryPolicyDocument(config,"0x71000000000000000000000000000000000042ae");
+    const prepared=prepareCanaryPolicyTransaction(config,user);
+    assert.equal(first.document.chainId,84532);
+    assert.equal(first.document.maxActionUsdc,"10.000000");
+    assert.equal(first.document.maxUserDailyUsdc,"20.000000");
+    assert.equal(first.document.maxGlobalDailyUsdc,"100.000000");
+    assert.notEqual(first.documentHash,second.documentHash);
+    assert.equal(prepared.chainId,84532);
+    assert.equal(prepared.from.toLowerCase(),user.toLowerCase());
+    assert.equal(prepared.to.toLowerCase(),"0x1000000000000000000000000000000000000001");
+    assert.match(prepared.data,/^0x[0-9a-f]+$/i);
+    assert.equal(prepared.valueWei,"0");
   });
 
 });
