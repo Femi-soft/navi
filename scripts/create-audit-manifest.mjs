@@ -18,6 +18,8 @@ const files=[
   "scripts/verify-base-sepolia-deployment.mjs",
   "scripts/verify-base-sepolia-protocol.mjs",
   "scripts/deploy-base-sepolia-canary.ps1",
+  "scripts/provision-base-sepolia-canary-signer.mjs",
+  "deployments/base-sepolia-canary-signer.json",
   "security/slither.Dockerfile",
   "security/reports/slither-0.11.6.json",
   "test/contracts/NaviContracts.ts",

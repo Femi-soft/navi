@@ -1,10 +1,11 @@
 param(
+  [switch]$PreflightOnly,
   [switch]$AcknowledgeUnauditedTestnetOnly,
   [switch]$AcknowledgePublicFallback
 )
 
 $ErrorActionPreference = "Stop"
-if (-not $AcknowledgeUnauditedTestnetOnly) { throw "Pass -AcknowledgeUnauditedTestnetOnly for this paused, unapproved Base Sepolia canary deployment" }
+if (-not $PreflightOnly -and -not $AcknowledgeUnauditedTestnetOnly) { throw "Pass -AcknowledgeUnauditedTestnetOnly for this paused, unapproved Base Sepolia canary deployment" }
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $envPath = Join-Path $repoRoot "apps\web\.env.local"
@@ -29,7 +30,7 @@ if ($rpcSource -eq "BASE_DOCUMENTED_PUBLIC_FALLBACK" -and -not $AcknowledgePubli
 
 $previousDerivationKey = $env:NAVI_PRIVATE_KEY_TO_DERIVE
 try {
-  $deriveAddress = 'import { privateKeyToAccount } from "viem/accounts"; console.log(privateKeyToAccount(process.env.NAVI_PRIVATE_KEY_TO_DERIVE).address)'
+  $deriveAddress = "import { privateKeyToAccount } from 'viem/accounts'; console.log(privateKeyToAccount(process.env.NAVI_PRIVATE_KEY_TO_DERIVE).address)"
   $env:NAVI_PRIVATE_KEY_TO_DERIVE = $privateKey
   $deployerAddress = (& node --input-type=module -e $deriveAddress).Trim()
   $env:NAVI_PRIVATE_KEY_TO_DERIVE = $evidenceSignerPrivateKey
@@ -43,6 +44,19 @@ if ($derivedEvidenceSigner -eq $deployerAddress) { throw "Refusing deployment: e
 $rpcBody = @{ jsonrpc = "2.0"; method = "eth_chainId"; params = @(); id = 1 } | ConvertTo-Json -Compress
 $rpcResponse = Invoke-RestMethod -Uri $rpcUrl -Method Post -ContentType "application/json" -Body $rpcBody -TimeoutSec 15
 if ($rpcResponse.result -ne "0x14a34") { throw "Refusing deployment: RPC is not Base Sepolia chain ID 84532" }
+
+if ($PreflightOnly) {
+  [pscustomobject]@{
+    chainId = 84532
+    deployerAddress = $deployerAddress
+    evidenceSignerAddress = $derivedEvidenceSigner
+    signerDistinctFromDeployer = $true
+    rpcSource = $rpcSource
+    status = "PREFLIGHT_ONLY_NO_BROADCAST"
+    retrievedAt = [DateTime]::UtcNow.ToString("o")
+  } | ConvertTo-Json
+  return
+}
 
 $parameterPath = Join-Path $repoRoot ".base-sepolia-canary-parameters.json"
 $parameters = @{ NaviBaseSepoliaCanaryModule = @{ evidenceSigner = $evidenceSigner } } | ConvertTo-Json -Depth 4

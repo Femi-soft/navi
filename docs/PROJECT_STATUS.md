@@ -17,6 +17,7 @@ Last updated: 2026-08-29
 - activated portfolio, opportunities, strategy, activity, and permissions workspaces: live wallet access and health checks remain provider-backed, while market, strategy, allocation, and editable policy views are explicitly labeled sample or browser-only drafts
 - Base Sepolia V3 Day One canary foundation: EIP-712 authorized simulation evidence, canary-user allowlisting, fixed Aave USDC supply/withdraw adapter, `10.000000` USDC action cap, daily user/global limits, separate deployment tooling, fail-closed policy and provider-simulation preparation routes, and non-broadcasting wallet network controls; V3 remains undeployed and disabled
 - security workflow run `33236194875` passed validation, dependency audit, commit-bound manifest, and Slither `0.11.6` with `fail-on: high`; the V3 active scan has no unsuppressed high finding, while seven lower-severity results remain documented and independent review is still required
+- Base Sepolia V3 deployment preflight passed without broadcast on 2026-08-29: fresh Aave pool/USDC/aUSDC relationships at block `46106725`, funded deployer `0xa24289448904ce7a4126448735D6fA0C7f246b72` with `0.004989532471480543 ETH`, and separate offchain evidence signer `0xB89e59d4587bC94d7c508e2d0d3519a00f63804b`; the configured Base public fallback was explicitly acknowledged and V3 remains undeployed
 
 ## Implemented production foundation
 

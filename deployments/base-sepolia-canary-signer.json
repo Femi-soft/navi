@@ -1,0 +1,8 @@
+{
+  "chainId": 84532,
+  "address": "0xB89e59d4587bC94d7c508e2d0d3519a00f63804b",
+  "purpose": "NAVI_BASE_SEPOLIA_CANARY_EVIDENCE_SIGNER",
+  "status": "TESTNET_ONLY_OFFCHAIN_SIGNER",
+  "source": "LOCAL_VIEM_CSPRNG",
+  "retrievedAt": "2026-08-29T05:36:56.904Z"
+}
